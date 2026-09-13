@@ -12,10 +12,10 @@ export class App {
   protected readonly reportOpen = signal(false);
   protected readonly filters = ['All items', 'Lost', 'Found', 'Recently returned'];
   protected readonly items = [
-    { category: 'Found', color: 'coral', date: 'Today, 9:14 AM', description: 'Found near the north entrance of the library.', icon: '🎧', location: 'North Library', name: 'Wireless headphones' },
-    { category: 'Lost', color: 'mint', date: 'Yesterday, 4:36 PM', description: 'Small silver ring with a green stone.', icon: '💍', location: 'Student Centre', name: 'Silver ring' },
-    { category: 'Found', color: 'yellow', date: 'Yesterday, 11:02 AM', description: 'Blue canvas tote left on a bench by the quad.', icon: '👜', location: 'Central Quad', name: 'Canvas tote bag' },
-    { category: 'Recently returned', color: 'lilac', date: '2 days ago', description: 'Returned to its owner after a community match.', icon: '🔑', location: 'East Parking Lot', name: 'Set of keys' },
+    { category: 'Lost', date: '2 hours ago', description: 'Black iPhone with a cracked screen found near Central Park.', image: 'https://images.unsplash.com/photo-1743184437508-f1b3b793922b?auto=format&fit=crop&w=900&q=80', location: 'Central Park', name: 'iPhone 14 Pro' },
+    { category: 'Found', date: '5 hours ago', description: 'Contains ID and credit cards, lost near downtown.', image: 'https://images.unsplash.com/photo-1661353559006-402f30f9e2a1?auto=format&fit=crop&w=900&q=80', location: 'Downtown', name: 'Brown Leather Wallet' },
+    { category: 'Found', date: '1 day ago', description: 'Nike backpack with laptop inside, found at a coffee shop.', image: 'https://images.unsplash.com/photo-1521411086197-4f459beee413?auto=format&fit=crop&w=900&q=80', location: 'University Area', name: 'Blue Backpack' },
+    { category: 'Lost', date: '3 hours ago', description: 'Toyota keys with a blue keychain, lost at the mall.', image: 'https://images.unsplash.com/photo-1599660541838-2e9b7c1f27f4?auto=format&fit=crop&w=900&q=80', location: 'Shopping Mall', name: 'Car Keys' },
   ];
   protected readonly filteredItems = computed(() => {
     const filter = this.activeFilter();
