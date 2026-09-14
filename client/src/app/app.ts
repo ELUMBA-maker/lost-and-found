@@ -7,6 +7,7 @@ import { Component, computed, signal } from '@angular/core';
   templateUrl: './app.html',
 })
 export class App {
+  protected readonly activePage = signal<'home' | 'browse' | 'report' | 'profile'>('home');
   protected readonly activeFilter = signal('All items');
   protected readonly searchTerm = signal('');
   protected readonly reportOpen = signal(false);
@@ -27,6 +28,7 @@ export class App {
     });
   });
   protected setFilter(filter: string): void { this.activeFilter.set(filter); }
+  protected setPage(page: 'home' | 'browse' | 'report' | 'profile'): void { this.activePage.set(page); }
   protected openReport(): void { this.reportOpen.set(true); }
   protected closeReport(): void { this.reportOpen.set(false); }
 }
