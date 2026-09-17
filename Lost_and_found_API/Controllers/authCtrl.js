@@ -67,7 +67,7 @@ export async function register(req, res) {
     const result = await pool.query(
       `INSERT INTO users (name, email, password_hash, phone)
        VALUES ($1, $2, $3, $4)
-       RETURNING id, name, email, phone, created_at`,
+      RETURNING id, name, email, phone, role, created_at`,
       [name.trim(), normalizedEmail, passwordHash, phone || null]
     );
 
@@ -125,7 +125,8 @@ export async function login(req, res) {
         id: user.id,
         name: user.name,
         email: user.email,
-        phone: user.phone
+        phone: user.phone,
+        role: user.role
       },
         accessToken,
        refreshToken
