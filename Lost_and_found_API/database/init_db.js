@@ -9,8 +9,21 @@ const createTables =async() =>{
             email VARCHAR(255) UNIQUE NOT NULL,
                password_hash TEXT NOT NULL,
     phone VARCHAR(30),
+    role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );`);
+            await pool.query(`
+            ALTER TABLE users
+            ADD COLUMN IF NOT EXISTS role VARCHAR(20) NOT NULL DEFAULT 'user';`);
+                        await pool.query(`
+                        DO $$
+                        BEGIN
+                            IF NOT EXISTS (
+                                SELECT 1 FROM pg_constraint WHERE conname = 'users_role_check'
+                            ) THEN
+                                ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('user', 'admin'));
+                            END IF;
+                        END $$;`);
             await pool.query(`
 
             CREATE TABLE IF NOT EXISTS items (
