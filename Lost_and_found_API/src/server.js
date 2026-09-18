@@ -17,7 +17,7 @@ import createTables from "../database/init_db.js";
 const app = express();
 const PORT = process.env.PORT || 6000;
 
-app.use(express.json());
+app.use(express.json({ limit: "70mb" }));
 
 app.use(generalLimiter);
 

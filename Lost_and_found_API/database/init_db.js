@@ -50,6 +50,8 @@ const createTables =async() =>{
             UNIQUE (item_id, claimant_id)
 );`);
             await pool.query(`
+            ALTER TABLE items ADD COLUMN IF NOT EXISTS image_data TEXT;`);
+            await pool.query(`
             CREATE INDEX IF NOT EXISTS idx_items_status ON items(status);`)
             await pool.query(`
             CREATE INDEX IF NOT EXISTS idx_items_category ON items(category);`)

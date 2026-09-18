@@ -15,7 +15,8 @@ router.post("/", authenticate, async (req, res) => {
       location,
       item_date,
       status,
-      contact_phone
+      contact_phone,
+      image_data
     } = req.body;
 
     if (!title || !description || !category || !location || !item_date || !status) {
@@ -32,8 +33,8 @@ router.post("/", authenticate, async (req, res) => {
 
     const result = await pool.query(
       `INSERT INTO items
-       (user_id, title, description, category, location, item_date, status, contact_phone)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+      (user_id, title, description, category, location, item_date, status, contact_phone, image_data)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
        RETURNING *`,
       [
         req.user.id,
@@ -43,7 +44,8 @@ router.post("/", authenticate, async (req, res) => {
         location.trim(),
         item_date,
         status,
-        contact_phone || req.user.phone || null
+        contact_phone || req.user.phone || null,
+        image_data || null
       ]
     );
 
