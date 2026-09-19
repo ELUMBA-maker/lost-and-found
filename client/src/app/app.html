@@ -1,35 +1,592 @@
 <div class="app-shell">
   <header class="site-header">
-    <a class="findit-brand" href="/" aria-label="Lost&found home"><span class="brand-search" aria-hidden="true">⌕</span><span>Lost&amp;found</span></a>
-    <nav class="main-nav" aria-label="Main navigation"><button [class.active]="activePage() === 'browse'" type="button" (click)="setPage('browse')">Browse items</button><button [class.active]="activePage() === 'report'" type="button" (click)="setPage('report')">Post Item</button><button type="button" (click)="setPage('home')">How it works</button><button type="button" (click)="setPage('home')">About us</button></nav>
-    <div class="account-actions"><button class="auth-cta" type="button" (click)="setPage('profile')">{{ authUser() ? 'My profile' : 'Sign in' }}</button><button class="menu-button" type="button" [attr.aria-expanded]="menuOpen()" [attr.aria-label]="menuOpen() ? 'Close menu' : 'Open menu'" (click)="toggleMenu()">☰</button></div>
+    <a class="findit-brand" href="/" aria-label="Lost&found home"
+      ><span class="brand-search" aria-hidden="true">⌕</span
+      ><span>Lost&amp;found</span></a
+    >
+    <nav class="main-nav" aria-label="Main navigation">
+      <button
+        [class.active]="activePage() === 'browse'"
+        type="button"
+        (click)="setPage('browse')"
+      >
+        Browse items</button
+      ><button
+        [class.active]="activePage() === 'report'"
+        type="button"
+        (click)="setPage('report')"
+      >
+        Post Item</button
+      ><button type="button" (click)="setPage('home')">How it works</button
+      ><button
+        [class.active]="activePage() === 'about'"
+        type="button"
+        (click)="setPage('about')"
+      >
+        About us</button
+      >
+    </nav>
+    <div class="account-actions">
+      <button class="auth-cta" type="button" (click)="setPage('profile')">
+        {{ authUser() ? 'My profile' : 'Sign in' }}</button
+      ><button
+        class="menu-button"
+        type="button"
+        [attr.aria-expanded]="menuOpen()"
+        [attr.aria-label]="menuOpen() ? 'Close menu' : 'Open menu'"
+        (click)="toggleMenu()"
+      >
+        ☰
+      </button>
+    </div>
   </header>
-  @if (menuOpen()) {<nav class="mobile-nav" aria-label="Mobile navigation"><button type="button" (click)="setPage('home')">About us</button><button type="button" (click)="setPage('profile')">{{ authUser() ? 'My profile' : 'Sign in' }}</button><button type="button" (click)="setPage('browse')">Browse items</button><button type="button" (click)="setPage('report')">Post Item</button></nav>}
-  @if (activePage() === 'home') {
-    <main>
+  @if (menuOpen()) {
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <button type="button" (click)="setPage('about')">About us</button
+    ><button type="button" (click)="setPage('profile')">
+      {{ authUser() ? 'My profile' : 'Sign in' }}</button
+    ><button type="button" (click)="setPage('browse')">Browse items</button
+    ><button type="button" (click)="setPage('report')">Post Item</button>
+  </nav>
+  } @if (activePage() === 'home') {
+  <main>
     <section class="findit-hero" aria-labelledby="page-title">
-      <div class="hero-overlay"></div><div class="hero-copy"><p class="eyebrow hero-eyebrow">Your community, connected</p><h1 id="page-title">Find What's Lost<br /><span>Return What's Found</span></h1><p class="hero-description">Connect with your community to reunite lost items with their owners. Together, we make finding easier.</p><div class="hero-actions"><button class="post-button post-button-large" type="button" (click)="setPage('report')"><span aria-hidden="true">+</span> Post an Item</button><button class="hero-link" type="button" (click)="setPage('browse')">Browse Items <span aria-hidden="true">→</span></button></div></div>
+      <div class="hero-overlay"></div>
+      <div class="hero-copy">
+        <p class="eyebrow hero-eyebrow">Your community, connected</p>
+        <h1 id="page-title">
+          Find What's Lost<br /><span>Return What's Found</span>
+        </h1>
+        <p class="hero-description">
+          Connect with your community to reunite lost items with their owners.
+          Together, we make finding easier.
+        </p>
+        <div class="hero-actions">
+          <button
+            class="post-button post-button-large"
+            type="button"
+            (click)="setPage('report')"
+          >
+            <span aria-hidden="true">+</span> Post an Item</button
+          ><button class="hero-link" type="button" (click)="setPage('browse')">
+            Browse Items <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      </div>
     </section>
     <section class="browse-section" id="browse" aria-labelledby="browse-title">
-      <div class="section-heading"><div><p class="eyebrow">Help reunite these items with their owners</p><h2 id="browse-title">Recently Posted</h2></div><label class="search-field"><span aria-hidden="true">⌕</span><span class="visually-hidden">Search items</span><input type="search" placeholder="Search items, places..." [value]="searchTerm()" (input)="setSearchTerm($any($event.target).value)" /></label></div>
-      <div class="filter-row" role="group" aria-label="Filter items">@for (filter of filters; track filter) {<button class="filter" type="button" [class.selected]="activeFilter() === filter" [attr.aria-pressed]="activeFilter() === filter" (click)="setFilter(filter)">{{ filter }}</button>}</div>
-      <div class="item-grid">@for (item of filteredItems(); track item.name) {<article class="item-card"><div class="item-visual" [style.background-image]="'url(' + item.image + ')'" [attr.aria-label]="item.name"><span class="item-tag" [class.found-tag]="item.category === 'Found'">{{ item.category }}</span></div><div class="item-content"><h3>{{ item.name }}</h3><p>{{ item.description }}</p><div class="item-meta"><span>⌖ {{ item.location }}</span><span>{{ item.date }}</span></div><button class="link-button" type="button">View details <span aria-hidden="true">→</span></button></div></article>} @empty {<p class="empty-state">No items match that search yet. Try another word or report what you’re looking for.</p>}</div>
-      <div class="view-all-row"><button class="view-all" type="button" (click)="setPage('browse')">View All Items <span aria-hidden="true">→</span></button></div>
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Help reunite these items with their owners</p>
+          <h2 id="browse-title">Recently Posted</h2>
+        </div>
+        <label class="search-field"
+          ><span aria-hidden="true">⌕</span
+          ><span class="visually-hidden">Search items</span
+          ><input
+            type="search"
+            placeholder="Search items, places..."
+            [value]="searchTerm()"
+            (input)="setSearchTerm($any($event.target).value)"
+        /></label>
+      </div>
+      <div class="filter-row" role="group" aria-label="Filter items">
+        @for (filter of filters; track filter) {<button
+          class="filter"
+          type="button"
+          [class.selected]="activeFilter() === filter"
+          [attr.aria-pressed]="activeFilter() === filter"
+          (click)="setFilter(filter)"
+        >
+          {{ filter }}</button
+        >}
+      </div>
+      <div class="item-grid">
+        @for (item of filteredItems(); track item.name) {
+        <article class="item-card">
+          <div
+            class="item-visual"
+            [style.background-image]="item.image ? 'url(' + item.image + ')' : ''"
+            [attr.aria-label]="item.name"
+          >
+            <span class="item-tag" [class.found-tag]="item.category === 'Found'"
+              >{{ item.category }}</span
+            >
+          </div>
+          <div class="item-content">
+            <h3>{{ item.name }}</h3>
+            <p>{{ item.description }}</p>
+            <div class="item-meta">
+              <span>⌖ {{ item.location }}</span><span>{{ item.date }}</span>
+            </div>
+            <button
+              class="link-button"
+              type="button"
+              [attr.aria-expanded]="selectedItemId() === item.id"
+              (click)="toggleItemDetails(item.id)"
+            >
+              {{ selectedItemId() === item.id ? 'Hide details' : 'View details'
+              }}
+              <span aria-hidden="true"
+                >{{ selectedItemId() === item.id ? '↑' : '→' }}</span
+              ></button
+            >@if (selectedItemId() === item.id) {
+            <div class="item-details">
+              <p>{{ item.description }}</p>
+              <div><strong>Status</strong><span>{{ item.category }}</span></div>
+              <div>
+                <strong>Location</strong><span>{{ item.location }}</span>
+              </div>
+              <div>
+                <strong>Date reported</strong><span>{{ item.date }}</span>
+              </div>
+            </div>
+            }
+          </div>
+        </article>
+        } @empty {
+        <p class="empty-state">
+          No items match that search yet. Try another word or report what you’re
+          looking for.
+        </p>
+        }
+      </div>
+      <div class="view-all-row">
+        <button class="view-all" type="button" (click)="setPage('browse')">
+          View All Items <span aria-hidden="true">→</span>
+        </button>
+      </div>
     </section>
-    <section class="how-section" id="how-it-works"><div><p class="eyebrow">How it works</p><h2>Building trust<br /><em>one return at a time.</em></h2></div><p>Every item has a story. FindIt makes it simple to share, search, and safely reconnect people with the things that matter.</p></section>
+    <section class="how-section" id="how-it-works">
+      <div>
+        <p class="eyebrow">How it works</p>
+        <h2>Building trust<br /><em>one return at a time.</em></h2>
+      </div>
+      <p>
+        Every item has a story. FindIt makes it simple to share, search, and
+        safely reconnect people with the things that matter.
+      </p>
+    </section>
   </main>
   } @else if (activePage() === 'browse') {
-    <main class="page-main browse-page" aria-labelledby="browse-page-title">
-      <section class="page-heading"><div><p class="eyebrow">The community board</p><h1 id="browse-page-title">Find it. Claim it.<br /><em>Keep it moving.</em></h1><p>Search recent reports by item, place, or category. Every result is one more chance to make a good return.</p></div><div class="page-heading-stat"><strong>{{ filteredItems().length }}</strong><span>matching reports</span></div></section>
-      <section class="browse-section browse-page-section"><div class="section-heading"><div><p class="eyebrow">Recently reported</p><h2>All community items</h2></div><label class="search-field"><span aria-hidden="true">⌕</span><span class="visually-hidden">Search items</span><input type="search" placeholder="Search items, places..." [value]="searchTerm()" (input)="setSearchTerm($any($event.target).value)" /></label></div><div class="filter-row" role="group" aria-label="Filter items">@for (filter of filters; track filter) {<button class="filter" type="button" [class.selected]="activeFilter() === filter" [attr.aria-pressed]="activeFilter() === filter" (click)="setFilter(filter)">{{ filter }}</button>}</div><div class="item-grid">@for (item of filteredItems(); track item.name) {<article class="item-card"><div class="item-visual" [style.background-image]="'url(' + item.image + ')'" [attr.aria-label]="item.name"><span class="item-tag" [class.found-tag]="item.category === 'Found'">{{ item.category }}</span></div><div class="item-content"><h3>{{ item.name }}</h3><p>{{ item.description }}</p><div class="item-meta"><span>⌖ {{ item.location }}</span><span>{{ item.date }}</span></div><button class="link-button" type="button">View details <span aria-hidden="true">→</span></button></div></article>} @empty {<p class="empty-state">No items match that search yet.</p>}</div></section>
-    </main>
+  <main class="page-main browse-page" aria-labelledby="browse-page-title">
+    <section class="page-heading">
+      <div>
+        <p class="eyebrow">The community board</p>
+        <h1 id="browse-page-title">
+          Find it. Claim it.<br /><em>Keep it moving.</em>
+        </h1>
+        <p>
+          Search recent reports by item, place, or category. Every result is one
+          more chance to make a good return.
+        </p>
+      </div>
+      <div class="page-heading-stat">
+        <strong>{{ filteredItems().length }}</strong
+        ><span>matching reports</span>
+      </div>
+    </section>
+    <section class="browse-section browse-page-section">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Recently reported</p>
+          <h2>All community items</h2>
+        </div>
+        <label class="search-field"
+          ><span aria-hidden="true">⌕</span
+          ><span class="visually-hidden">Search items</span
+          ><input
+            type="search"
+            placeholder="Search items, places..."
+            [value]="searchTerm()"
+            (input)="setSearchTerm($any($event.target).value)"
+        /></label>
+      </div>
+      <div class="filter-row" role="group" aria-label="Filter items">
+        @for (filter of filters; track filter) {<button
+          class="filter"
+          type="button"
+          [class.selected]="activeFilter() === filter"
+          [attr.aria-pressed]="activeFilter() === filter"
+          (click)="setFilter(filter)"
+        >
+          {{ filter }}</button
+        >}
+      </div>
+      <div class="item-grid">
+        @for (item of filteredItems(); track item.name) {
+        <article class="item-card">
+          <div
+            class="item-visual"
+            [style.background-image]="item.image ? 'url(' + item.image + ')' : ''"
+            [attr.aria-label]="item.name"
+          >
+            <span class="item-tag" [class.found-tag]="item.category === 'Found'"
+              >{{ item.category }}</span
+            >
+          </div>
+          <div class="item-content">
+            <h3>{{ item.name }}</h3>
+            <p>{{ item.description }}</p>
+            <div class="item-meta">
+              <span>⌖ {{ item.location }}</span><span>{{ item.date }}</span>
+            </div>
+            <button
+              class="link-button"
+              type="button"
+              [attr.aria-expanded]="selectedItemId() === item.id"
+              (click)="toggleItemDetails(item.id)"
+            >
+              {{ selectedItemId() === item.id ? 'Hide details' : 'View details'
+              }}
+              <span aria-hidden="true"
+                >{{ selectedItemId() === item.id ? '↑' : '→' }}</span
+              ></button
+            >@if (selectedItemId() === item.id) {
+            <div class="item-details">
+              <p>{{ item.description }}</p>
+              <div><strong>Status</strong><span>{{ item.category }}</span></div>
+              <div>
+                <strong>Location</strong><span>{{ item.location }}</span>
+              </div>
+              <div>
+                <strong>Date reported</strong><span>{{ item.date }}</span>
+              </div>
+            </div>
+            }
+          </div>
+        </article>
+        } @empty {
+        <p class="empty-state">No items match that search yet.</p>
+        }
+      </div>
+    </section>
+  </main>
   } @else if (activePage() === 'report') {
-    <main class="page-main report-page" aria-labelledby="report-page-title"><section class="report-intro"><p class="eyebrow">Help make the next connection</p><h1 id="report-page-title">A small detail<br /><em>can mean everything.</em></h1><p>Share what you lost or found and let your neighbours do the looking with you.</p><div class="report-note"><span aria-hidden="true">✦</span><p><strong>Good to know</strong><br />Never share sensitive personal details. Meet in a public place and verify ownership before handing anything over.</p></div></section><form class="report-form" (submit)="submitReport($event)"><div class="form-switch" role="group" aria-label="Report type"><button [class.selected]="reportStatus() === 'lost'" type="button" (click)="setReportStatus('lost')">I lost something</button><button [class.selected]="reportStatus() === 'found'" type="button" (click)="setReportStatus('found')">I found something</button></div><label>What is it?<input required name="title" type="text" placeholder="e.g. blue backpack" /></label><label>Where did it happen?<input required name="location" type="text" placeholder="e.g. Main Library" /></label><div class="form-row"><label>When?<input name="item_date" type="date" /></label><label>Category<select name="category"><option>Personal items</option><option>Electronics</option><option>Keys</option><option>Documents</option></select></label></div><label>Tell us more<textarea name="description" rows="4" placeholder="Colour, brand, unique details..."></textarea></label><label class="image-upload">Photo<input name="image" type="file" accept="image/*" capture="environment" (change)="selectImage($event)" /><span>Take a photo or choose one from your device</span></label>@if (selectedImage()) {<img class="image-preview" [src]="selectedImage()" alt="Selected item preview" />}@if (reportError()) {<p class="form-error" role="alert">{{ reportError() }}</p>}<button class="post-button submit-report" type="submit" [disabled]="reportSubmitting()">{{ reportSubmitting() ? 'Publishing...' : 'Publish report' }} <span aria-hidden="true">→</span></button></form></main>
+  <main class="page-main report-page" aria-labelledby="report-page-title">
+    <section class="report-intro">
+      <p class="eyebrow">Help make the next connection</p>
+      <h1 id="report-page-title">
+        A small detail<br /><em>can mean everything.</em>
+      </h1>
+      <p>
+        Share what you lost or found and let your neighbours do the looking with
+        you.
+      </p>
+      <div class="report-note">
+        <span aria-hidden="true">✦</span>
+        <p>
+          <strong>Good to know</strong><br />Never share sensitive personal
+          details. Meet in a public place and verify ownership before handing
+          anything over.
+        </p>
+      </div>
+    </section>
+    <form class="report-form" (submit)="submitReport($event)">
+      <div class="form-switch" role="group" aria-label="Report type">
+        <button
+          [class.selected]="reportStatus() === 'lost'"
+          type="button"
+          (click)="setReportStatus('lost')"
+        >
+          I lost something</button
+        ><button
+          [class.selected]="reportStatus() === 'found'"
+          type="button"
+          (click)="setReportStatus('found')"
+        >
+          I found something
+        </button>
+      </div>
+      <label
+        >What is it?<input
+          required
+          name="title"
+          type="text"
+          placeholder="e.g. blue backpack" /></label
+      ><label
+        >Where did it happen?<input
+          required
+          name="location"
+          type="text"
+          placeholder="e.g. Main Library"
+      /></label>
+      <div class="form-row">
+        <label>When?<input name="item_date" type="date" /></label
+        ><label
+          >Category<select name="category">
+            <option>Personal items</option>
+            <option>Electronics</option>
+            <option>Keys</option>
+            <option>Documents</option>
+          </select></label
+        >
+      </div>
+      <label
+        >Tell us more<textarea
+          name="description"
+          rows="4"
+          placeholder="Colour, brand, unique details..."
+        ></textarea></label
+      ><label class="image-upload"
+        >Photo<input
+          name="image"
+          type="file"
+          accept="image/*"
+          capture="environment"
+          (change)="selectImage($event)"
+        /><span>Take a photo or choose one from your device</span></label
+      >@if (selectedImage()) {<img
+        class="image-preview"
+        [src]="selectedImage()"
+        alt="Selected item preview"
+      />}@if (reportError()) {
+      <p class="form-error" role="alert">{{ reportError() }}</p>
+      }<button
+        class="post-button submit-report"
+        type="submit"
+        [disabled]="reportSubmitting()"
+      >
+        {{ reportSubmitting() ? 'Publishing...' : 'Publish report' }}
+        <span aria-hidden="true">→</span>
+      </button>
+    </form>
+  </main>
   } @else if (activePage() === 'profile' && !authUser()) {
-    <main class="page-main auth-page" aria-labelledby="auth-title"><form class="auth-form" (submit)="authMode() === 'signin' ? login($event) : register($event)"><div class="auth-tabs" role="tablist" aria-label="Account access"><button type="button" [class.selected]="authMode() === 'signin'" (click)="setAuthMode('signin')">Sign in</button><button type="button" [class.selected]="authMode() === 'signup'" (click)="setAuthMode('signup')">Create account</button></div>@if (authMode() === 'signin') {<p class="eyebrow">Welcome back</p><h1 id="auth-title">Sign in to FindIt.</h1><p class="auth-copy">Sign in to search, post reports, and interact with community items.</p><label>Email address<input required name="email" type="email" autocomplete="email" placeholder="you@example.com" /></label><label>Password<input required name="password" type="password" autocomplete="current-password" placeholder="Your password" /></label>} @else {<p class="eyebrow">Join the community</p><h1 id="auth-title">Create your account.</h1><p class="auth-copy">Sign up to search, post reports, and help return lost items.</p><label>Full name<input required name="name" type="text" autocomplete="name" placeholder="Your full name" /></label><label>Email address<input required name="email" type="email" autocomplete="email" placeholder="you@example.com" /></label><label>Phone number<input required name="phone" type="tel" inputmode="numeric" pattern="[0-9]+" autocomplete="tel" placeholder="Digits only" /></label><label>Password<input required name="password" type="password" minlength="6" autocomplete="new-password" placeholder="At least 6 characters" /></label><p class="password-hint">Use uppercase, lowercase, a number, and a special character.</p>}@if (loginError()) {<p class="form-error" role="alert">{{ loginError() }}</p>}<button class="post-button submit-report" type="submit" [disabled]="loginSubmitting()">{{ loginSubmitting() ? (authMode() === 'signin' ? 'Signing in...' : 'Creating account...') : (authMode() === 'signin' ? 'Sign in' : 'Create account') }} <span aria-hidden="true">→</span></button></form></main>
+  <main class="page-main auth-page" aria-labelledby="auth-title">
+    <form
+      class="auth-form"
+      (submit)="authMode() === 'signin' ? login($event) : register($event)"
+    >
+      <div class="auth-tabs" role="tablist" aria-label="Account access">
+        <button
+          type="button"
+          [class.selected]="authMode() === 'signin'"
+          (click)="setAuthMode('signin')"
+        >
+          Sign in</button
+        ><button
+          type="button"
+          [class.selected]="authMode() === 'signup'"
+          (click)="setAuthMode('signup')"
+        >
+          Create account
+        </button>
+      </div>
+      @if (authMode() === 'signin') {
+      <p class="eyebrow">Welcome back</p>
+      <h1 id="auth-title">Sign in to FindIt.</h1>
+      <p class="auth-copy">
+        Sign in to search, post reports, and interact with community items.
+      </p>
+      <label
+        >Email address<input
+          required
+          name="email"
+          type="email"
+          autocomplete="email"
+          placeholder="you@example.com" /></label
+      ><label
+        >Password<input
+          required
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          placeholder="Your password" /></label
+      >} @else {
+      <p class="eyebrow">Join the community</p>
+      <h1 id="auth-title">Create your account.</h1>
+      <p class="auth-copy">
+        Sign up to search, post reports, and help return lost items.
+      </p>
+      <label
+        >Full name<input
+          required
+          name="name"
+          type="text"
+          autocomplete="name"
+          placeholder="Your full name" /></label
+      ><label
+        >Email address<input
+          required
+          name="email"
+          type="email"
+          autocomplete="email"
+          placeholder="you@example.com" /></label
+      ><label
+        >Phone number<input
+          required
+          name="phone"
+          type="tel"
+          inputmode="numeric"
+          pattern="[0-9]+"
+          autocomplete="tel"
+          placeholder="Digits only" /></label
+      ><label
+        >Password<input
+          required
+          name="password"
+          type="password"
+          minlength="6"
+          autocomplete="new-password"
+          placeholder="At least 6 characters"
+      /></label>
+      <p class="password-hint">
+        Use uppercase, lowercase, a number, and a special character.
+      </p>
+      }@if (loginError()) {
+      <p class="form-error" role="alert">{{ loginError() }}</p>
+      }<button
+        class="post-button submit-report"
+        type="submit"
+        [disabled]="loginSubmitting()"
+      >
+        {{ loginSubmitting() ? (authMode() === 'signin' ? 'Signing in...' :
+        'Creating account...') : (authMode() === 'signin' ? 'Sign in' : 'Create
+        account') }} <span aria-hidden="true">→</span>
+      </button>
+    </form>
+  </main>
+  } @else if (activePage() === 'about') {
+  <main class="page-main about-page" aria-labelledby="about-page-title">
+    <section class="about-hero">
+      <div class="about-intro">
+        <p class="eyebrow">Why we built this</p>
+        <h1 id="about-page-title">The space between lost and <em>found.</em></h1>
+      </div>
+      <div class="about-copy">
+        <p>
+          <strong>lost&amp;found exists to close the gap between losing something and getting it back.</strong>
+        </p>
+        <p>
+          Every year, thousands of items :phones, keys, wallets, backpacks 
+          go missing on campuses, in offices, and around neighborhoods, not
+          because they're truly gone, but because the person who found them has
+          no way to reach the person who lost them. Homeward fixes that gap.
+        </p>
+        <p>
+          We built a simple, structured way to report what's lost, log what's
+          found, and let your community do the rest  matching people to their
+          belongings faster than a bulletin board ever could.
+        </p>
+        <p class="about-principle">
+          <strong>No middlemen. No lost cause. Just your community, connected.</strong>
+        </p>
+      </div>
+    </section>
+  </main>
   } @else {
-    <main class="page-main profile-page" aria-labelledby="profile-page-title"><section class="profile-banner"><div class="avatar">{{ authUser()?.name?.slice(0, 2)?.toUpperCase() }}</div><div><p class="eyebrow">Your FindIt profile</p><h1 id="profile-page-title">{{ authUser()?.name }}</h1><p>{{ authUser()?.email }}</p></div><button class="button button-light" type="button" (click)="signOut()">Sign out</button></section>@if (myItems().length > 0) {<section class="profile-grid"><div class="profile-card"><p class="eyebrow">Your reports</p><strong>{{ myItems().length }}</strong><span>items posted</span><div class="impact-line"><span [style.width.%]="myItems().length > 5 ? 100 : myItems().length * 20"></span></div></div><div class="profile-card"><div class="card-heading"><h2>Recent activity</h2></div>@for (item of myItems(); track item.id) {<div class="activity-row"><span class="activity-icon" [class.found-icon]="item.status === 'found' || item.status === 'returned'">{{ item.status === 'returned' ? '✓' : '⌕' }}</span><div><strong>{{ item.title }}</strong><p>{{ item.location }} · {{ item.item_date }}</p></div><span class="activity-status" [class.open-status]="item.status === 'lost'">{{ item.status }}</span></div>}</div></section>}</main>
+  <main class="page-main profile-page" aria-labelledby="profile-page-title">
+    <section class="profile-banner">
+      <div class="avatar">
+        {{ authUser()?.name?.slice(0, 2)?.toUpperCase() }}
+      </div>
+      <div>
+        <p class="eyebrow">Your FindIt profile</p>
+        <h1 id="profile-page-title">{{ authUser()?.name }}</h1>
+        <p>{{ authUser()?.email }}</p>
+      </div>
+      <button class="button button-light" type="button" (click)="signOut()">
+        Sign out
+      </button>
+    </section>
+    @if (myItems().length > 0) {
+    <section class="profile-grid">
+      <div class="profile-card">
+        <p class="eyebrow">Your reports</p>
+        <strong>{{ myItems().length }}</strong><span>items posted</span>
+        <div class="impact-line">
+          <span
+            [style.width.%]="myItems().length > 5 ? 100 : myItems().length * 20"
+          ></span>
+        </div>
+      </div>
+      <div class="profile-card">
+        <div class="card-heading"><h2>Recent activity</h2></div>
+        @for (item of myItems(); track item.id) {
+        <div class="activity-row">
+          <span
+            class="activity-icon"
+            [class.found-icon]="item.status === 'found' || item.status === 'returned'"
+            >{{ item.status === 'returned' ? '✓' : '⌕' }}</span
+          >
+          <div>
+            <strong>{{ item.status }}: {{ item.title }}</strong>
+            <p>{{ item.location }} · {{ item.item_date }}</p>
+          </div>
+          <span
+            class="activity-status"
+            [class.open-status]="item.status === 'lost'"
+            >{{ item.status }}</span
+          >
+        </div>
+        }
+      </div>
+    </section>
+    }
+  </main>
   }
-  <footer class="site-footer" id="about"><div class="footer-brand"><a class="findit-brand" href="/" aria-label="Lost&found home"><span class="brand-search" aria-hidden="true">⌕</span><span>Lost&amp;found</span></a><p>Connecting communities to reunite lost items with their owners.</p></div><div><strong>Quick Links</strong><a href="#browse">Search Items</a><a href="#how-it-works">How It Works</a><a href="#about">Success Stories</a></div><div><strong>Support</strong><a href="#about">Help Center</a><a href="#about">Safety Guidelines</a><a href="#about">Contact Us</a></div><div><strong>Trust &amp; Safety</strong><p>Always meet in public places and verify item ownership before exchanges.</p></div></footer>
-  @if (reportOpen()) {<div class="modal-backdrop" role="presentation" (click)="closeReport()"><section class="report-modal" role="dialog" aria-modal="true" aria-labelledby="report-title" (click)="$event.stopPropagation()"><button class="close-button" type="button" aria-label="Close report form" (click)="closeReport()">×</button><p class="eyebrow">Start a report</p><h2 id="report-title">What did you find?</h2><p class="modal-copy">A few details are all it takes to help someone find their way back to it.</p><label>Item name<input type="text" placeholder="e.g. blue backpack" /></label><label>Where was it found?<input type="text" placeholder="e.g. Main Library" /></label><button class="button button-dark submit-button" type="button" (click)="closeReport()">Continue <span aria-hidden="true">→</span></button></section></div>}
+  <footer class="site-footer" id="about">
+    <div class="footer-brand">
+      <a class="findit-brand" href="/" aria-label="Lost&found home"
+        ><span class="brand-search" aria-hidden="true">⌕</span
+        ><span>Lost&amp;found</span></a
+      >
+      <p>Connecting communities to reunite lost items with their owners.</p>
+    </div>
+    <div>
+      <strong>Quick Links</strong><a href="#browse">Search Items</a
+      ><a href="#how-it-works">How It Works</a
+      ><a href="#about">Success Stories</a>
+    </div>
+    <div>
+      <strong>Support</strong><a href="#about">Help Center</a
+      ><a href="#about">Safety Guidelines</a><a href="#about">Contact Us</a>
+    </div>
+    <div>
+      <strong>Trust &amp; Safety</strong>
+      <p>
+        Always meet in public places and verify item ownership before exchanges.
+      </p>
+    </div>
+  </footer>
+  @if (reportOpen()) {
+  <div class="modal-backdrop" role="presentation" (click)="closeReport()">
+    <section
+      class="report-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="report-title"
+      (click)="$event.stopPropagation()"
+    >
+      <button
+        class="close-button"
+        type="button"
+        aria-label="Close report form"
+        (click)="closeReport()"
+      >
+        ×
+      </button>
+      <p class="eyebrow">Start a report</p>
+      <h2 id="report-title">What did you find?</h2>
+      <p class="modal-copy">
+        A few details are all it takes to help someone find their way back to
+        it.
+      </p>
+      <label
+        >Item name<input type="text" placeholder="e.g. blue backpack" /></label
+      ><label
+        >Where was it found?<input
+          type="text"
+          placeholder="e.g. Main Library" /></label
+      ><button
+        class="button button-dark submit-button"
+        type="button"
+        (click)="closeReport()"
+      >
+        Continue <span aria-hidden="true">→</span>
+      </button>
+    </section>
+  </div>
+  }
 </div>
