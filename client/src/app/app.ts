@@ -9,12 +9,13 @@ import { ApiItem, ApiService, AuthUser } from './core/api.service';
 })
 export class App {
   private readonly api = inject(ApiService);
-  protected readonly activePage = signal<'home' | 'browse' | 'report' | 'profile'>('home');
+  protected readonly activePage = signal<'home' | 'browse' | 'report' | 'profile' | 'about'>('home');
   protected readonly activeFilter = signal('All items');
   protected readonly searchTerm = signal('');
   protected readonly reportOpen = signal(false);
   protected readonly reportStatus = signal<'lost' | 'found'>('lost');
   protected readonly selectedImage = signal('');
+  protected readonly selectedItemId = signal<number | null>(null);
   protected readonly menuOpen = signal(false);
   protected readonly authUser = signal<AuthUser | null>(null);
   protected readonly authMode = signal<'signin' | 'signup'>('signin');
@@ -66,6 +67,9 @@ export class App {
     if (!this.requireAuth()) return;
     this.activeFilter.set(filter);
   }
+  protected toggleItemDetails(itemId: number): void {
+    this.selectedItemId.update((selectedId) => selectedId === itemId ? null : itemId);
+  }
   protected setSearchTerm(value: string): void {
     if (!this.requireAuth()) return;
     this.searchTerm.set(value);
@@ -84,7 +88,7 @@ export class App {
     reader.onload = () => this.selectedImage.set(String(reader.result || ''));
     reader.readAsDataURL(file);
   }
-  protected setPage(page: 'home' | 'browse' | 'report' | 'profile'): void {
+  protected setPage(page: 'home' | 'browse' | 'report' | 'profile' | 'about'): void {
     if (page === 'report' && !this.requireAuth()) return;
     this.activePage.set(page);
     this.menuOpen.set(false);
@@ -136,7 +140,6 @@ export class App {
             localStorage.setItem('refreshToken', response.refreshToken);
             localStorage.setItem('authUser', JSON.stringify(response.user));
             this.authUser.set(response.user);
-            this.loadMyItems(response.accessToken);
             this.loadMyItems(response.accessToken);
             this.loginSubmitting.set(false);
             this.setPage('home');
