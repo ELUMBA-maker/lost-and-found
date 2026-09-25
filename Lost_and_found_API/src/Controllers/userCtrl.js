@@ -1,4 +1,4 @@
-import pool from "../src/db.js";
+import pool from "../db.js";
 
 export async function me(req,res) {
   try {

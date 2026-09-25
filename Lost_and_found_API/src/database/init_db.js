@@ -1,5 +1,5 @@
 import query from "pg/lib/native/query";
-import pool from "../src/db.js"
+import pool from "../db.js"
 const createTables =async() =>{
     try{
         await pool.query(`
@@ -7,9 +7,13 @@ const createTables =async() =>{
             id SERIAL PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
             email VARCHAR(255) UNIQUE NOT NULL,
-               password_hash TEXT NOT NULL,
-    phone VARCHAR(30),
-    role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+            password_hash TEXT NOT NULL,
+            phone VARCHAR(30),
+            email_verified BOOLEAN DEFAULT FALSE,
+            verification_code TEXT,
+            verification_expires TIMESTAMP,
+            
+            role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );`);
             await pool.query(`

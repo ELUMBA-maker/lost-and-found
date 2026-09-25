@@ -1,7 +1,9 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import pool from "../src/db.js";
+import pool from "../db.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/token.js";
+import { generateOTP } from "../utils/otp.js";
+import { sendVerificationEmail } from "../utils/email.js";
 
 export async function register(req, res) {
   try {
@@ -79,7 +81,7 @@ export async function register(req, res) {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Internal Server error" });
   }
 };
 
@@ -133,7 +135,7 @@ export async function login(req, res) {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Internal Server error" });
   }
 };
 export async function refresh(req,res) {
@@ -168,3 +170,9 @@ export async function refresh(req,res) {
     });
   }
 };
+export async function my(req,res) {
+   res.status(401).json({
+    message: "Use the authenticated /api/users/me endpoint"
+  })
+  
+}
