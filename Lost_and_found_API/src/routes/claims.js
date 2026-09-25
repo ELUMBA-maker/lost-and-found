@@ -1,7 +1,7 @@
 import { Router } from "express";
 import pool from "../db.js";
 import { authenticate } from "../middleware/auth.js";
-import { get_claim_on_item_by_id, my_claims, post_claim, update_claim_status } from "../../Controllers/ClaimCtrl.js";
+import { get_claim_on_item_by_id, my_claims, post_claim, update_claim_status } from "../Controllers/ClaimCtrl.js";
 
 const router = Router();
 

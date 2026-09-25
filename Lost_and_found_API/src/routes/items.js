@@ -1,7 +1,7 @@
 import { Router } from "express";
 import pool from "../db.js";
 import { authenticate } from "../middleware/auth.js";
-import { delete_items, get_all_items, get_item_by_id, my_items, post_item, update_item_status } from "../../Controllers/ItemCtrl.js";
+import { delete_items, get_all_items, get_item_by_id, my_items, post_item, update_item_status } from "../Controllers/ItemCtrl.js";
 
 const router = Router();
 
