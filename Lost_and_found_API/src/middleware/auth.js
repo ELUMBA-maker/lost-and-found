@@ -13,7 +13,7 @@ export async function authenticate(req, res, next) {
     const decoded = jwt.verify(token,process.env.JWT_ACCESS_SECRET);
 
     const result = await pool.query(
-      "SELECT id, name, email, phone FROM users WHERE id = $1",
+      "SELECT id, name, email, phone, role FROM users WHERE id = $1",
       [decoded.id]
     );
 
@@ -26,4 +26,12 @@ export async function authenticate(req, res, next) {
   } catch (error) {
     return res.status(401).json({ message: "Invalid or expired token" });
   }
+}
+
+export function requireAdmin(req, res, next) {
+  if (req.user?.role !== "admin") {
+    return res.status(403).json({ message: "Administrator access required" });
+  }
+
+  next();
 }

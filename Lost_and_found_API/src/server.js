@@ -11,6 +11,7 @@ import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import itemRoutes from "./routes/items.js";
 import claimRoutes from "./routes/claims.js";
+import adminRoutes from "./routes/admin.js";
 import createTables from "./database/init_db.js";
 
 const app = express();
@@ -19,7 +20,7 @@ const PORT = process.env.PORT || 6000;
 // app.use(cors({
 //   origin: "http://localhost:3000", 
 // }))
-app.use(express.json());
+app.use(express.json({ limit: "70mb" }));
 
 app.use(generalLimiter);
 
@@ -53,6 +54,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/items", itemRoutes);
 app.use("/api/claims", claimRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.use((req, res) => {
   res.status(404).json({
