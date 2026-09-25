@@ -167,3 +167,9 @@ export async function refresh(req,res) {
     });
   }
 };
+export async function my(req,res) {
+   res.status(401).json({
+    message: "Use the authenticated /api/users/me endpoint"
+  })
+  
+}
