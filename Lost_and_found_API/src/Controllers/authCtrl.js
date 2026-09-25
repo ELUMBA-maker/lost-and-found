@@ -45,7 +45,6 @@ export async function register(req, res) {
         message:"Password Must Contain At least One Special Case Letter"
       });
     }
-
     const normalizedEmail = email.trim().toLowerCase();
     const emailRegex= /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -79,9 +78,25 @@ export async function register(req, res) {
       message: "Registration successful",
       user
     });
+
+    const verificationCode = generateOTP();
+
+    const verificationExpires =
+    new Date(Date.now() + 10 * 60 * 1000);
+
+    await pool.query(
+      `UPDATE users
+      SET verification_code = $1,
+         verification_expires = $2
+     WHERE id = $3`,
+    [verificationCode, verificationExpires, user.id]
+);
+
+await sendVerificationEmail(user.email, verificationCode);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server error" });
+
   }
 };
 

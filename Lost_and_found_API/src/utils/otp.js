@@ -1,7 +1,10 @@
+import crypto from "crypto";
+import { sendVerificationEmail } from "../utils/email.js";
+
 export const generateOTP = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString();
+    return crypto.randomInt(100000, 1000000).toString();
 };
 
-const code = generateOTP();
-
-const expires = new Date(Date.now() + 15 * 60 * 1000);
+export const getOTPExpiration = () => {
+    return new Date(Date.now() + 10 * 60 * 1000);
+};
