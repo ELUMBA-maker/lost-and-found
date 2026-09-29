@@ -1,23 +1,21 @@
 import { Router } from "express";
 import pool from "../db.js";
 import { authenticate } from "../middleware/auth.js";
-import { get_claim_on_item_by_id, my_claims, post_claim, update_claim_status } from "../Controllers/ClaimCtrl.js";
 
-const router = Router();
-
-router.post("/", authenticate, async (req, res) => {
-  try {
+export async function post_claim(req,res) {
+     try {
     const { item_id, message } = req.body;
 
     if (!item_id || !message) {
       return res.status(400).json({
-        message: "item_id and message are required",
+        message: "item_id and message are required"
       });
     }
 
-    const itemResult = await pool.query("SELECT * FROM items WHERE id = $1", [
-      item_id,
-    ]);
+    const itemResult = await pool.query(
+      "SELECT * FROM items WHERE id = $1",
+      [item_id]
+    );
 
     if (itemResult.rows.length === 0) {
       return res.status(404).json({ message: "Item not found" });
@@ -27,13 +25,13 @@ router.post("/", authenticate, async (req, res) => {
 
     if (item.status !== "found") {
       return res.status(400).json({
-        message: "Claims can only be made on items with status 'found'",
+        message: "Claims can only be made on items with status 'found'"
       });
     }
 
     if (item.user_id === req.user.id) {
       return res.status(400).json({
-        message: "You cannot claim an item you reported",
+        message: "You cannot claim an item you reported"
       });
     }
 
@@ -41,59 +39,57 @@ router.post("/", authenticate, async (req, res) => {
       `INSERT INTO claims (item_id, claimant_id, message)
        VALUES ($1, $2, $3)
        RETURNING *`,
-      [item_id, req.user.id, message.trim()],
+      [item_id, req.user.id, message.trim()]
     );
 
     res.status(201).json({
       message: "Claim submitted successfully",
-      claim: result.rows[0],
+      claim: result.rows[0]
     });
   } catch (error) {
     if (error.code === "23505") {
       return res.status(409).json({
-        message: "You already submitted a claim for this item",
+        message: "You already submitted a claim for this item"
       });
     }
 
     console.error(error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Internal Server error" });
   }
-});
-
-router.get("/my", authenticate, async (req, res) => {
-  try {
+    
+}
+export async function my_claims(req,res) {
+    try {
     const result = await pool.query(
       `SELECT
          c.*,
          i.title AS item_title,
          i.description AS item_description,
          i.location AS item_location,
-         u.name AS reporter_name,
-         CASE WHEN c.status = 'approved' THEN u.email END AS reporter_email,
-         CASE WHEN c.status = 'approved' THEN COALESCE(i.contact_phone, u.phone) END AS reporter_phone
+         u.name AS reporter_name
        FROM claims c
        JOIN items i ON i.id = c.item_id
        JOIN users u ON u.id = i.user_id
        WHERE c.claimant_id = $1
        ORDER BY c.created_at DESC`,
-      [req.user.id],
+      [req.user.id]
     );
 
     res.json({
       count: result.rows.length,
-      claims: result.rows,
+      claims: result.rows
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Internal Server error" });
   }
-});
-
-router.get("/item/:itemId", authenticate, async (req, res) => {
-  try {
+    
+}
+export async function get_claim_on_item_by_id(req,res) {
+     try {
     const ownerCheck = await pool.query(
       "SELECT user_id FROM items WHERE id = $1",
-      [req.params.itemId],
+      [req.params.itemId]
     );
 
     if (ownerCheck.rows.length === 0) {
@@ -102,7 +98,7 @@ router.get("/item/:itemId", authenticate, async (req, res) => {
 
     if (ownerCheck.rows[0].user_id !== req.user.id) {
       return res.status(403).json({
-        message: "Only the item reporter can view its claims",
+        message: "Only the item reporter can view its claims"
       });
     }
 
@@ -110,32 +106,32 @@ router.get("/item/:itemId", authenticate, async (req, res) => {
       `SELECT
          c.*,
          u.name AS claimant_name,
-         CASE WHEN c.status = 'approved' THEN u.email END AS claimant_email,
-         CASE WHEN c.status = 'approved' THEN u.phone END AS claimant_phone
+         u.email AS claimant_email,
+         u.phone AS claimant_phone
        FROM claims c
        JOIN users u ON u.id = c.claimant_id
        WHERE c.item_id = $1
        ORDER BY c.created_at DESC`,
-      [req.params.itemId],
+      [req.params.itemId]
     );
 
     res.json({
       count: result.rows.length,
-      claims: result.rows,
+      claims: result.rows
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Internal Server error" });
   }
-});
-
-router.patch("/:id", authenticate, async (req, res) => {
-  try {
+    
+}
+export async function update_claim_status(req,res) {
+     try {
     const { status } = req.body;
 
     if (!["approved", "rejected"].includes(status)) {
       return res.status(400).json({
-        message: "status must be approved or rejected",
+        message: "status must be approved or rejected"
       });
     }
 
@@ -147,7 +143,7 @@ router.patch("/:id", authenticate, async (req, res) => {
        FROM claims c
        JOIN items i ON i.id = c.item_id
        WHERE c.id = $1`,
-      [req.params.id],
+      [req.params.id]
     );
 
     if (claimResult.rows.length === 0) {
@@ -158,7 +154,7 @@ router.patch("/:id", authenticate, async (req, res) => {
 
     if (claim.item_owner_id !== req.user.id) {
       return res.status(403).json({
-        message: "Only the item reporter can approve or reject a claim",
+        message: "Only the item reporter can approve or reject a claim"
       });
     }
 
@@ -172,13 +168,13 @@ router.patch("/:id", authenticate, async (req, res) => {
          SET status = $1
          WHERE id = $2
          RETURNING *`,
-        [status, req.params.id],
+        [status, req.params.id]
       );
 
       if (status === "approved") {
         await client.query(
           "UPDATE items SET status = 'claimed' WHERE id = $1",
-          [claim.item_id],
+          [claim.item_id]
         );
 
         await client.query(
@@ -187,7 +183,7 @@ router.patch("/:id", authenticate, async (req, res) => {
            WHERE item_id = $1
              AND id <> $2
              AND status = 'pending'`,
-          [claim.item_id, req.params.id],
+          [claim.item_id, req.params.id]
         );
       }
 
@@ -195,7 +191,7 @@ router.patch("/:id", authenticate, async (req, res) => {
 
       res.json({
         message: `Claim ${status}`,
-        claim: updatedClaim.rows[0],
+        claim: updatedClaim.rows[0]
       });
     } catch (error) {
       await client.query("ROLLBACK");
@@ -207,10 +203,5 @@ router.patch("/:id", authenticate, async (req, res) => {
     console.error(error);
     res.status(500).json({ message: "Server error" });
   }
-});
-router.post("/", authenticate, post_claim);
-router.get("/my", authenticate, my_claims);
-router.get("/item/:itemId", authenticate, get_claim_on_item_by_id);
-router.patch("/:id", authenticate, update_claim_status);
-
-export default router;
+    
+}
