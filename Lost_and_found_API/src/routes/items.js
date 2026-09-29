@@ -16,18 +16,26 @@ router.post("/", authenticate, async (req, res) => {
       item_date,
       status,
       contact_phone,
-      image_data
+      image_data,
     } = req.body;
 
-    if (!title || !description || !category || !location || !item_date || !status) {
+    if (
+      !title ||
+      !description ||
+      !category ||
+      !location ||
+      !item_date ||
+      !status
+    ) {
       return res.status(400).json({
-        message: "title, description, category, location, item_date and status are required"
+        message:
+          "title, description, category, location, item_date and status are required",
       });
     }
 
     if (!allowedStatuses.includes(status)) {
       return res.status(400).json({
-        message: `status must be one of: ${allowedStatuses.join(", ")}`
+        message: `status must be one of: ${allowedStatuses.join(", ")}`,
       });
     }
 
@@ -45,13 +53,13 @@ router.post("/", authenticate, async (req, res) => {
         item_date,
         status,
         contact_phone || req.user.phone || null,
-        image_data || null
-      ]
+        image_data || null,
+      ],
     );
 
     res.status(201).json({
       message: "Item reported successfully",
-      item: result.rows[0]
+      item: result.rows[0],
     });
   } catch (error) {
     console.error(error);
@@ -85,35 +93,41 @@ router.get("/", async (req, res) => {
       values.push(`%${search}%`);
       const p = values.length;
       conditions.push(
-        `(i.title ILIKE $${p} OR i.description ILIKE $${p} OR i.location ILIKE $${p})`
+        `(i.title ILIKE $${p} OR i.description ILIKE $${p} OR i.location ILIKE $${p})`,
       );
     }
 
     if (mine === "true") {
       return res.status(400).json({
-        message: "Use GET /api/items/my for your own reports"
+        message: "Use GET /api/items/my for your own reports",
       });
     }
 
-    const where = conditions.length
-      ? `WHERE ${conditions.join(" AND ")}`
-      : "";
+    const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
     const result = await pool.query(
       `SELECT
-         i.*,
-         u.name AS reporter_name,
-         u.email AS reporter_email
+        i.id,
+        i.user_id,
+        i.title,
+        i.description,
+        i.category,
+        i.location,
+        i.item_date,
+        i.status,
+        i.image_data,
+        i.created_at,
+        u.name AS reporter_name
        FROM items i
        JOIN users u ON u.id = i.user_id
        ${where}
        ORDER BY i.created_at DESC`,
-      values
+      values,
     );
 
     res.json({
       count: result.rows.length,
-      items: result.rows
+      items: result.rows,
     });
   } catch (error) {
     console.error(error);
@@ -127,12 +141,12 @@ router.get("/my", authenticate, async (req, res) => {
       `SELECT * FROM items
        WHERE user_id = $1
        ORDER BY created_at DESC`,
-      [req.user.id]
+      [req.user.id],
     );
 
     res.json({
       count: result.rows.length,
-      items: result.rows
+      items: result.rows,
     });
   } catch (error) {
     console.error(error);
@@ -144,14 +158,21 @@ router.get("/:id", async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT
-         i.*,
-         u.name AS reporter_name,
-         u.email AS reporter_email,
-         u.phone AS reporter_phone
+        i.id,
+        i.user_id,
+        i.title,
+        i.description,
+        i.category,
+        i.location,
+        i.item_date,
+        i.status,
+        i.image_data,
+        i.created_at,
+        u.name AS reporter_name
        FROM items i
        JOIN users u ON u.id = i.user_id
        WHERE i.id = $1`,
-      [req.params.id]
+      [req.params.id],
     );
 
     if (result.rows.length === 0) {
@@ -167,10 +188,9 @@ router.get("/:id", async (req, res) => {
 
 router.put("/:id", authenticate, async (req, res) => {
   try {
-    const itemResult = await pool.query(
-      "SELECT * FROM items WHERE id = $1",
-      [req.params.id]
-    );
+    const itemResult = await pool.query("SELECT * FROM items WHERE id = $1", [
+      req.params.id,
+    ]);
 
     if (itemResult.rows.length === 0) {
       return res.status(404).json({ message: "Item not found" });
@@ -178,7 +198,7 @@ router.put("/:id", authenticate, async (req, res) => {
 
     if (itemResult.rows[0].user_id !== req.user.id) {
       return res.status(403).json({
-        message: "You can only update your own reports"
+        message: "You can only update your own reports",
       });
     }
 
@@ -189,12 +209,12 @@ router.put("/:id", authenticate, async (req, res) => {
       location,
       item_date,
       status,
-      contact_phone
+      contact_phone,
     } = req.body;
 
     if (status && !allowedStatuses.includes(status)) {
       return res.status(400).json({
-        message: `status must be one of: ${allowedStatuses.join(", ")}`
+        message: `status must be one of: ${allowedStatuses.join(", ")}`,
       });
     }
 
@@ -219,13 +239,13 @@ router.put("/:id", authenticate, async (req, res) => {
         item_date ?? current.item_date,
         status ?? current.status,
         contact_phone ?? current.contact_phone,
-        req.params.id
-      ]
+        req.params.id,
+      ],
     );
 
     res.json({
       message: "Item updated successfully",
-      item: result.rows[0]
+      item: result.rows[0],
     });
   } catch (error) {
     console.error(error);
@@ -237,12 +257,12 @@ router.delete("/:id", authenticate, async (req, res) => {
   try {
     const result = await pool.query(
       "DELETE FROM items WHERE id = $1 AND user_id = $2 RETURNING id",
-      [req.params.id, req.user.id]
+      [req.params.id, req.user.id],
     );
 
     if (result.rows.length === 0) {
       return res.status(404).json({
-        message: "Item not found or you are not its owner"
+        message: "Item not found or you are not its owner",
       });
     }
 

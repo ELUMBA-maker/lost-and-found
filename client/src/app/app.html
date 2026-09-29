@@ -23,8 +23,8 @@
         type="button"
         (click)="setPage('about')"
       >
-        About us</button
-      >
+        About us
+      </button>
     </nav>
     <div class="account-actions">
       <button class="auth-cta" type="button" (click)="setPage('profile')">
@@ -141,6 +141,14 @@
                 <strong>Date reported</strong><span>{{ item.date }}</span>
               </div>
             </div>
+            }@if (item.status === 'found' && item.ownerId !== authUser()?.id) {
+            <button
+              class="post-button claim-item-button"
+              type="button"
+              (click)="startClaim(item.id)"
+            >
+              This is mine <span aria-hidden="true">→</span>
+            </button>
             }
           </div>
         </article>
@@ -253,6 +261,14 @@
                 <strong>Date reported</strong><span>{{ item.date }}</span>
               </div>
             </div>
+            }@if (item.status === 'found' && item.ownerId !== authUser()?.id) {
+            <button
+              class="post-button claim-item-button"
+              type="button"
+              (click)="startClaim(item.id)"
+            >
+              This is mine <span aria-hidden="true">→</span>
+            </button>
             }
           </div>
         </article>
@@ -261,6 +277,83 @@
         }
       </div>
     </section>
+  </main>
+  } @else if (activePage() === 'claim') {
+  <main class="page-main report-page" aria-labelledby="claim-page-title">
+    <section class="report-intro">
+      <p class="eyebrow">Claim a found item</p>
+      <h1 id="claim-page-title">Tell us what<br /><em>you lost.</em></h1>
+      @if (claimItem()) {
+      <p>
+        You are responding to <strong>{{ claimItem()?.title }}</strong>,
+        reported near {{ claimItem()?.location }}.
+      </p>
+      } @else {
+      <p>
+        The found item could not be loaded. Return to the list and try again.
+      </p>
+      }
+      <div class="report-note">
+        <span aria-hidden="true">✦</span>
+        <p>
+          <strong>Help verify it's yours</strong><br />Share details only the
+          owner would know. Your contact information stays private until the
+          reporter approves your claim.
+        </p>
+      </div>
+    </section>
+    <form class="report-form" (submit)="submitClaim($event)">
+      <label
+        >What did you lose?<input
+          required
+          name="claim_title"
+          type="text"
+          placeholder="e.g. blue backpack"
+      /></label>
+      <label
+        >Where did you last have it?<input
+          required
+          name="claim_location"
+          type="text"
+          placeholder="e.g. Main Library"
+      /></label>
+      <div class="form-row">
+        <label
+          >When did you lose it?<input
+            required
+            name="claim_date"
+            type="date" /></label
+        ><label
+          >Category<select name="claim_category" required>
+            <option value="">Choose a category</option>
+            <option>Personal items</option>
+            <option>Electronics</option>
+            <option>Keys</option>
+            <option>Documents</option>
+          </select></label
+        >
+      </div>
+      <label
+        >What proves it belongs to you?<textarea
+          required
+          name="description"
+          rows="4"
+          placeholder="Colour, brand, contents, distinguishing marks..."
+        ></textarea></label
+      >@if (claimError()) {
+      <p class="form-error" role="alert">{{ claimError() }}</p>
+      }<button
+        class="post-button submit-report"
+        type="submit"
+        [disabled]="claimSubmitting() || !claimItem()"
+      >
+        {{ claimSubmitting() ? 'Sending claim...' : 'Send claim for review' }}
+        <span aria-hidden="true">→</span>
+      </button>
+      <button class="link-button" type="button" (click)="setPage('browse')">
+        Back to items
+      </button>
+    </form>
   </main>
   } @else if (activePage() === 'report') {
   <main class="page-main report-page" aria-labelledby="report-page-title">
@@ -330,6 +423,7 @@
         ></textarea></label
       ><label class="image-upload"
         >Photo<input
+          id="report-image-input"
           name="image"
           type="file"
           accept="image/*"
@@ -452,25 +546,33 @@
     <section class="about-hero">
       <div class="about-intro">
         <p class="eyebrow">Why we built this</p>
-        <h1 id="about-page-title">The space between lost and <em>found.</em></h1>
+        <h1 id="about-page-title">
+          The space between lost and <em>found.</em>
+        </h1>
       </div>
       <div class="about-copy">
         <p>
-          <strong>lost&amp;found exists to close the gap between losing something and getting it back.</strong>
+          <strong
+            >lost&amp;found exists to close the gap between losing something and
+            getting it back.</strong
+          >
         </p>
         <p>
-          Every year, thousands of items :phones, keys, wallets, backpacks 
-          go missing on campuses, in offices, and around neighborhoods, not
-          because they're truly gone, but because the person who found them has
-          no way to reach the person who lost them. Homeward fixes that gap.
+          Every year, thousands of items :phones, keys, wallets, backpacks go
+          missing on campuses, in offices, and around neighborhoods, not because
+          they're truly gone, but because the person who found them has no way
+          to reach the person who lost them. Homeward fixes that gap.
         </p>
         <p>
           We built a simple, structured way to report what's lost, log what's
-          found, and let your community do the rest  matching people to their
+          found, and let your community do the rest matching people to their
           belongings faster than a bulletin board ever could.
         </p>
         <p class="about-principle">
-          <strong>No middlemen. No lost cause. Just your community, connected.</strong>
+          <strong
+            >No middlemen. No lost cause. Just your community,
+            connected.</strong
+          >
         </p>
       </div>
     </section>
@@ -522,6 +624,102 @@
         </div>
         }
       </div>
+    </section>
+    } @if (myClaims().length > 0) {
+    <section class="claim-dashboard">
+      <div class="card-heading"><h2>Your claims</h2></div>
+      @for (claim of myClaims(); track claim.id) {
+      <article class="claim-review-row">
+        <div class="claim-review-copy">
+          <strong>{{ claim.item_title }}</strong>
+          <p>{{ claim.item_location }}</p>
+          <p class="claim-message">{{ claim.message }}</p>
+        </div>
+        <span
+          class="activity-status"
+          [class.open-status]="claim.status === 'pending' || claim.status === 'rejected'"
+          >{{ claim.status }}</span
+        >
+        @if (claim.status === 'approved') {
+        <div class="claim-contact-actions">
+          @if (claim.reporter_email) {<a
+            [href]="'mailto:' + claim.reporter_email"
+            >Email {{ claim.reporter_name }}</a
+          >} @if (claim.reporter_phone) {<a
+            [href]="'tel:' + claim.reporter_phone"
+            >Call {{ claim.reporter_name }}</a
+          >} @if (chatLink(claim.reporter_phone)) {<a
+            [href]="chatLink(claim.reporter_phone)"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Chat on WhatsApp</a
+          >}
+        </div>
+        }
+      </article>
+      }
+    </section>
+    } @if (hasFoundItems()) {
+    <section class="claim-dashboard">
+      <div class="card-heading"><h2>Claims to review</h2></div>
+      @if (claimReviewError()) {
+      <p class="form-error" role="alert">{{ claimReviewError() }}</p>
+      } @for (item of myItems(); track item.id) { @if (item.status === 'found'
+      || item.status === 'claimed') {
+      <div class="claim-item-group">
+        <h3>{{ item.title }} <span>· {{ item.location }}</span></h3>
+        @for (claim of claimsForItem(item.id); track claim.id) {
+        <article class="claim-review-row">
+          <div class="claim-review-copy">
+            <strong>{{ claim.claimant_name }}</strong>
+            <p class="claim-message">{{ claim.message }}</p>
+          </div>
+          <span
+            class="activity-status"
+            [class.open-status]="claim.status === 'pending' || claim.status === 'rejected'"
+            >{{ claim.status }}</span
+          >
+          @if (claim.status === 'pending') {
+          <div class="claim-decision-actions">
+            <button
+              class="post-button"
+              type="button"
+              [disabled]="claimReviewingId() === claim.id"
+              (click)="reviewClaim(claim.id, item.id, 'approved')"
+            >
+              Approve
+            </button>
+            <button
+              class="link-button"
+              type="button"
+              [disabled]="claimReviewingId() === claim.id"
+              (click)="reviewClaim(claim.id, item.id, 'rejected')"
+            >
+              Decline
+            </button>
+          </div>
+          } @else if (claim.status === 'approved') {
+          <div class="claim-contact-actions">
+            @if (claim.claimant_email) {<a
+              [href]="'mailto:' + claim.claimant_email"
+              >Email {{ claim.claimant_name }}</a
+            >} @if (claim.claimant_phone) {<a
+              [href]="'tel:' + claim.claimant_phone"
+              >Call {{ claim.claimant_name }}</a
+            >} @if (chatLink(claim.claimant_phone)) {<a
+              [href]="chatLink(claim.claimant_phone)"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Chat on WhatsApp</a
+            >}
+          </div>
+          }
+        </article>
+        } @empty {
+        <p class="claim-empty">No claims yet.</p>
+        }
+      </div>
+      } }
     </section>
     }
   </main>

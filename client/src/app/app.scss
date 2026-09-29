@@ -809,14 +809,18 @@ h2 {
 }
 .item-tag {
   background: #ff7424;
-  border-radius: 4px;
+  border-radius: 999px;
   color: #fff;
   font-family: "Space Grotesk", sans-serif;
-  font-size: 0.62rem;
+  font-size: 0.52rem;
   font-weight: 700;
-  left: 1rem;
-  padding: 0.4rem 0.65rem;
-  top: 1rem;
+  letter-spacing: 0.08em;
+  left: 0.75rem;
+  line-height: 1;
+  padding: 0.38rem 0.55rem;
+  position: absolute;
+  text-transform: uppercase;
+  top: 0.75rem;
   z-index: 1;
 }
 .found-tag {
@@ -1282,6 +1286,10 @@ h2 {
   border: 0;
   margin-top: 0.5rem;
 }
+.claim-dashboard { margin: 1.5rem auto 0; max-width: 1100px; }
+.claim-review-row { display: grid; gap: 0.75rem; grid-template-columns: minmax(0, 1fr) auto; }
+.claim-message { white-space: pre-line; overflow-wrap: anywhere; }
+.claim-decision-actions,.claim-contact-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; grid-column: 1 / -1; }
 .profile-page {
   background: #f7f8f6;
   max-width: none;

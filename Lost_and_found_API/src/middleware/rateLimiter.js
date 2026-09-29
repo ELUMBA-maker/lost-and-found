@@ -11,12 +11,12 @@ export const generalLimiter = rateLimit({
 });
 
 export const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs: 15 * 60 * 100,
   limit: 5,
   standardHeaders: "draft-8",
   legacyHeaders: false,
   message: {
-    message: "Too many login attempts. Please try again later."
+    message: "Too many login attempts. Please try again in 1 minute."
   }
 });
 
