@@ -1,17 +1,35 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Injectable, inject } from "@angular/core";
+import { HttpClient, HttpHeaders, HttpParams } from "@angular/common/http";
+import { Observable } from "rxjs";
 
 export interface ApiItem {
   id: number;
+  user_id: number;
   title: string;
   description: string;
   category: string;
   location: string;
   item_date: string;
-  status: 'lost' | 'found' | 'claimed' | 'returned';
+  status: "lost" | "found" | "claimed" | "returned";
   image_data?: string;
   created_at?: string;
+}
+
+export interface ApiClaim {
+  id: number;
+  item_id: number;
+  claimant_id: number;
+  message: string;
+  status: "pending" | "approved" | "rejected";
+  item_title?: string;
+  item_description?: string;
+  item_location?: string;
+  reporter_name?: string;
+  reporter_email?: string;
+  reporter_phone?: string;
+  claimant_name?: string;
+  claimant_email?: string;
+  claimant_phone?: string;
 }
 
 export interface CreateItemRequest {
@@ -20,7 +38,7 @@ export interface CreateItemRequest {
   category: string;
   location: string;
   item_date: string;
-  status: 'lost' | 'found';
+  status: "lost" | "found";
   image_data?: string;
   contact_phone?: string;
 }
@@ -51,15 +69,17 @@ export interface RegisterRequest {
   phone: string;
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class ApiService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = '/api';
+  private readonly apiUrl = "/api";
 
-  getItems(filters: { search?: string; status?: string } = {}): Observable<ItemsResponse> {
+  getItems(
+    filters: { search?: string; status?: string } = {},
+  ): Observable<ItemsResponse> {
     let params = new HttpParams();
-    if (filters.search) params = params.set('search', filters.search);
-    if (filters.status) params = params.set('status', filters.status);
+    if (filters.search) params = params.set("search", filters.search);
+    if (filters.status) params = params.set("status", filters.status);
     return this.http.get<ItemsResponse>(`${this.apiUrl}/items`, { params });
   }
 
@@ -68,17 +88,75 @@ export class ApiService {
     return this.http.get<ItemsResponse>(`${this.apiUrl}/items/my`, { headers });
   }
 
-  createItem(item: CreateItemRequest, accessToken: string): Observable<{ item: ApiItem }> {
+  createItem(
+    item: CreateItemRequest,
+    accessToken: string,
+  ): Observable<{ item: ApiItem }> {
     const headers = new HttpHeaders({ Authorization: `Bearer ${accessToken}` });
-    return this.http.post<{ item: ApiItem }>(`${this.apiUrl}/items`, item, { headers });
+    return this.http.post<{ item: ApiItem }>(`${this.apiUrl}/items`, item, {
+      headers,
+    });
+  }
+
+  createClaim(
+    itemId: number,
+    message: string,
+    accessToken: string,
+  ): Observable<{ claim: ApiClaim }> {
+    const headers = new HttpHeaders({ Authorization: `Bearer ${accessToken}` });
+    return this.http.post<{ claim: ApiClaim }>(
+      `${this.apiUrl}/claims`,
+      { item_id: itemId, message },
+      { headers },
+    );
+  }
+
+  getMyClaims(
+    accessToken: string,
+  ): Observable<{ count: number; claims: ApiClaim[] }> {
+    const headers = new HttpHeaders({ Authorization: `Bearer ${accessToken}` });
+    return this.http.get<{ count: number; claims: ApiClaim[] }>(
+      `${this.apiUrl}/claims/my`,
+      { headers },
+    );
+  }
+
+  getItemClaims(
+    itemId: number,
+    accessToken: string,
+  ): Observable<{ count: number; claims: ApiClaim[] }> {
+    const headers = new HttpHeaders({ Authorization: `Bearer ${accessToken}` });
+    return this.http.get<{ count: number; claims: ApiClaim[] }>(
+      `${this.apiUrl}/claims/item/${itemId}`,
+      { headers },
+    );
+  }
+
+  updateClaimStatus(
+    claimId: number,
+    status: "approved" | "rejected",
+    accessToken: string,
+  ): Observable<{ claim: ApiClaim }> {
+    const headers = new HttpHeaders({ Authorization: `Bearer ${accessToken}` });
+    return this.http.patch<{ claim: ApiClaim }>(
+      `${this.apiUrl}/claims/${claimId}`,
+      { status },
+      { headers },
+    );
   }
 
   login(email: string, password: string): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login`, { email, password });
+    return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login`, {
+      email,
+      password,
+    });
   }
 
   register(user: RegisterRequest): Observable<{ user: AuthUser }> {
-    return this.http.post<{ user: AuthUser }>(`${this.apiUrl}/auth/register`, user);
+    return this.http.post<{ user: AuthUser }>(
+      `${this.apiUrl}/auth/register`,
+      user,
+    );
   }
 
   getCurrentUser(accessToken: string): Observable<AuthUser> {
