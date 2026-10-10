@@ -1,19 +1,23 @@
 import express from "express";
 import "dotenv/config";
+
 import pool, { validateDatabaseUrl } from "./db.js";
-import init_db from "../database/init_db.js";
 import { generalLimiter } from "./middleware/rateLimiter.js";
+import cors from "cors";
 
 import authRoutes from "./routes/auth.js";
 import userRoutes from "./routes/users.js";
 import itemRoutes from "./routes/items.js";
 import claimRoutes from "./routes/claims.js";
 import adminRoutes from "./routes/admin.js";
-import createTables from "../database/init_db.js";
+import createTables from "./database/init_db.js";
 
 const app = express();
 const PORT = process.env.PORT || 6000;
 
+// app.use(cors({
+//   origin: "http://localhost:3000", 
+// }))
 app.use(express.json({ limit: "70mb" }));
 
 app.use(generalLimiter);
