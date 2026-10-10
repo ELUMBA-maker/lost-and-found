@@ -1,3 +1,4 @@
+<!-- Shared shell for the whole app: header, navigation, content pages, footer, and overlays -->
 <div class="app-shell">
   <header class="site-header">
     <a class="findit-brand" href="/" aria-label="Lost&found home"
@@ -28,7 +29,8 @@
     </nav>
     <div class="account-actions">
       <button class="auth-cta" type="button" (click)="setPage('profile')">
-        {{ authUser() ? 'My profile' : 'Sign in' }}</button
+        {{ authUser() ? (isAdmin() ? 'Admin profile' : 'My profile') : 'Sign in'
+        }}</button
       ><button
         class="menu-button"
         type="button"
@@ -48,7 +50,9 @@
     ><button type="button" (click)="setPage('browse')">Browse items</button
     ><button type="button" (click)="setPage('report')">Post Item</button>
   </nav>
-  } @if (activePage() === 'home') {
+  }
+  <!-- Home section: landing page, recent reports, and community call-to-action -->
+  @if (activePage() === 'home') {
   <main>
     <section class="findit-hero" aria-labelledby="page-title">
       <div class="hero-overlay"></div>
@@ -176,6 +180,7 @@
       </p>
     </section>
   </main>
+  <!-- Browse section: searchable list of all reported lost and found items -->
   } @else if (activePage() === 'browse') {
   <main class="page-main browse-page" aria-labelledby="browse-page-title">
     <section class="page-heading">
@@ -278,6 +283,7 @@
       </div>
     </section>
   </main>
+  <!-- Claim form: claimant describes the lost item and uploads proof before admin review -->
   } @else if (activePage() === 'claim') {
   <main class="page-main report-page" aria-labelledby="claim-page-title">
     <section class="report-intro">
@@ -297,8 +303,9 @@
         <span aria-hidden="true">✦</span>
         <p>
           <strong>Help verify it's yours</strong><br />Share details only the
-          owner would know. Your contact information stays private until the
-          reporter approves your claim.
+          owner would know. Your contact information stays private until the an
+          administrator reviews your claim. Uploaded proof is visible only to
+          administrators.
         </p>
       </div>
     </section>
@@ -340,7 +347,16 @@
           rows="4"
           placeholder="Colour, brand, contents, distinguishing marks..."
         ></textarea></label
-      >@if (claimError()) {
+      ><label
+        >Photo ID or other proof (optional)<input
+          name="claim_proof"
+          type="file"
+          accept="image/jpeg,image/png,image/webp,application/pdf"
+          (change)="selectClaimProof($event)"
+      /></label>
+      @if (claimProof()) {
+      <p class="claim-proof-name">Attached: {{ claimProof()?.name }}</p>
+      } @if (claimError()) {
       <p class="form-error" role="alert">{{ claimError() }}</p>
       }<button
         class="post-button submit-report"
@@ -355,6 +371,7 @@
       </button>
     </form>
   </main>
+  <!-- Report form: reporter posts a new lost or found item with photo and description -->
   } @else if (activePage() === 'report') {
   <main class="page-main report-page" aria-labelledby="report-page-title">
     <section class="report-intro">
@@ -439,13 +456,15 @@
       }<button
         class="post-button submit-report"
         type="submit"
-        [disabled]="reportSubmitting()"
+        [disabled]="reportSubmitting() || imageProcessing()"
       >
-        {{ reportSubmitting() ? 'Publishing...' : 'Publish report' }}
+        {{ imageProcessing() ? 'Preparing photo...' : reportSubmitting() ?
+        'Publishing...' : 'Publish report' }}
         <span aria-hidden="true">→</span>
       </button>
     </form>
   </main>
+  <!-- Authentication view: sign in or create a community account -->
   } @else if (activePage() === 'profile' && !authUser()) {
   <main class="page-main auth-page" aria-labelledby="auth-title">
     <form
@@ -541,6 +560,7 @@
       </button>
     </form>
   </main>
+  <!-- About page: explains the purpose and safety principles of the platform -->
   } @else if (activePage() === 'about') {
   <main class="page-main about-page" aria-labelledby="about-page-title">
     <section class="about-hero">
@@ -586,6 +606,9 @@
       <div>
         <p class="eyebrow">Your FindIt profile</p>
         <h1 id="profile-page-title">{{ authUser()?.name }}</h1>
+        @if (isAdmin()) {
+        <span class="admin-pill">Admin</span>
+        }
         <p>{{ authUser()?.email }}</p>
       </div>
       <button class="button button-light" type="button" (click)="signOut()">
@@ -634,6 +657,17 @@
           <strong>{{ claim.item_title }}</strong>
           <p>{{ claim.item_location }}</p>
           <p class="claim-message">{{ claim.message }}</p>
+          @if (claim.payment_status === 'requested') {
+          <p class="claim-message">
+            Finder reward requested from you: {{ claim.payment_amount }} XAF. {{
+            claim.payment_instructions }}
+          </p>
+          } @else if (claim.payment_status === 'paid') {
+          <p class="claim-message">
+            Payment confirmed. You can now coordinate the return with the
+            reporter.
+          </p>
+          }
         </div>
         <span
           class="activity-status"
@@ -680,24 +714,7 @@
             >{{ claim.status }}</span
           >
           @if (claim.status === 'pending') {
-          <div class="claim-decision-actions">
-            <button
-              class="post-button"
-              type="button"
-              [disabled]="claimReviewingId() === claim.id"
-              (click)="reviewClaim(claim.id, item.id, 'approved')"
-            >
-              Approve
-            </button>
-            <button
-              class="link-button"
-              type="button"
-              [disabled]="claimReviewingId() === claim.id"
-              (click)="reviewClaim(claim.id, item.id, 'rejected')"
-            >
-              Decline
-            </button>
-          </div>
+          <p class="claim-message">Awaiting administrator verification.</p>
           } @else if (claim.status === 'approved') {
           <div class="claim-contact-actions">
             @if (claim.claimant_email) {<a
@@ -721,9 +738,184 @@
       </div>
       } }
     </section>
+    } @if (authUser()?.role === 'admin') {
+    <section class="claim-dashboard admin-claim-dashboard">
+      <div class="card-heading"><h2>Administrator review</h2></div>
+      @if (adminError()) {
+      <p class="form-error" role="alert">{{ adminError() }}</p>
+      } @for (claim of adminClaims(); track claim.id) {
+      <article class="admin-claim-row">
+        <div class="claim-review-copy">
+          <strong>{{ claim.item_title }} · {{ claim.claimant_name }}</strong>
+          <p>
+            Reporter: {{ claim.reporter_name }} · {{ claim.created_at |
+            date:'mediumDate' }}
+          </p>
+          <p class="claim-message">{{ claim.message }}</p>
+          @if (claim.evidence_name) {
+          <button
+            class="link-button"
+            type="button"
+            (click)="openClaimEvidence(claim.id)"
+          >
+            View proof · {{ claim.evidence_name }}
+          </button>
+          } @else {
+          <p>No identity proof attached.</p>
+          }
+        </div>
+        <span
+          class="activity-status"
+          [class.open-status]="claim.verification_status !== 'verified'"
+          >{{ claim.verification_status }} · {{ claim.payment_status }}</span
+        >
+        <div class="claim-decision-actions">
+          <button
+            class="post-button"
+            type="button"
+            [disabled]="adminBusyId() === claim.id || claim.verification_status !== 'pending'"
+            (click)="reviewAdminClaim(claim, 'approved')"
+          >
+            Verify
+          </button>
+          <button
+            class="link-button"
+            type="button"
+            [disabled]="adminBusyId() === claim.id || claim.verification_status !== 'pending'"
+            (click)="reviewAdminClaim(claim, 'rejected')"
+          >
+            Reject
+          </button>
+        </div>
+        @if (claim.verification_status === 'verified' && claim.payment_status
+        === 'not_requested') {
+        <form
+          class="payment-request-form"
+          (submit)="requestPayment($event, claim.id)"
+        >
+          <label
+            >Finder reward paid by claimant (XAF)<input
+              name="amount"
+              type="number"
+              min="1000"
+              max="50000"
+              step="1"
+              required
+          /></label>
+          <label
+            >Payment instructions<input
+              name="instructions"
+              type="text"
+              maxlength="1000"
+              required
+              placeholder="How to complete payment"
+          /></label>
+          <button
+            class="post-button"
+            type="submit"
+            [disabled]="adminBusyId() === claim.id"
+          >
+            Request payment
+          </button>
+        </form>
+        } @else if (claim.payment_status === 'requested') {
+        <div class="payment-request-detail">
+          <p>
+            Finder reward: {{ claim.payment_amount }} XAF · {{
+            claim.payment_instructions }}
+          </p>
+          <button
+            class="post-button"
+            type="button"
+            [disabled]="adminBusyId() === claim.id"
+            (click)="confirmPayment(claim.id)"
+          >
+            Confirm received
+          </button>
+        </div>
+        }
+      </article>
+      } @empty {
+      <p class="claim-empty">No claims to review.</p>
+      }
+    </section>
+    <!-- Conversation list for non-admin users after payment confirmation -->
+    } @if (authUser()?.role !== 'admin') {
+    <section class="claim-dashboard conversations-dashboard">
+      <div class="card-heading"><h2>Conversations</h2></div>
+      <p class="conversation-intro">
+        Chat directly with the other person after the reward is confirmed.
+      </p>
+      @for (conversation of conversations(); track conversation.claim.id) {
+      <article class="claim-review-row">
+        <div class="claim-review-copy">
+          <strong>{{ conversation.itemTitle }}</strong>
+          <p>{{ conversation.otherRole }}: {{ conversation.otherPerson }}</p>
+        </div>
+        <button
+          class="post-button"
+          type="button"
+          (click)="openConversation(conversation.claim)"
+        >
+          Chat
+        </button>
+      </article>
+      } @empty {
+      <p class="claim-empty">
+        No conversations yet. A chat appears here after the administrator
+        confirms the reward.
+      </p>
+      }
+    </section>
+    <!-- Live claim conversation thread shown only for the claimant and finder -->
+    } @if (activeChatClaim(); as chatClaim) {
+    <section
+      class="claim-dashboard conversation-panel"
+      aria-label="Claim conversation"
+    >
+      <div class="card-heading">
+        <h2>
+          Conversation · {{ chatClaim.item_title || chatClaim.claimant_name }}
+        </h2>
+        <button class="link-button" type="button" (click)="closeConversation()">
+          Close
+        </button>
+      </div>
+      <div class="conversation-messages" aria-live="polite">
+        @if (chatLoading()) {
+        <p>Loading messages...</p>
+        } @for (message of chatMessages(); track message.id) {
+        <article class="conversation-message">
+          <strong>{{ message.sender_name }} · {{ message.sender_role }}</strong>
+          <p>{{ message.message }}</p>
+          <time>{{ message.created_at | date:'short' }}</time>
+        </article>
+        } @empty {@if (!chatLoading()) {
+        <p>No messages yet.</p>
+        }}
+      </div>
+      @if (chatError()) {
+      <p class="form-error" role="alert">{{ chatError() }}</p>
+      }
+      <form
+        class="conversation-compose"
+        (submit)="sendConversationMessage($event)"
+      >
+        <label class="visually-hidden" for="claim-chat-message">Message</label>
+        <input
+          id="claim-chat-message"
+          name="chat_message"
+          maxlength="2000"
+          required
+          placeholder="Write a message"
+        />
+        <button class="post-button" type="submit">Send</button>
+      </form>
+    </section>
     }
   </main>
   }
+  <!-- Footer with quick links, support resources, and trust-and-safety reminders -->
   <footer class="site-footer" id="about">
     <div class="footer-brand">
       <a class="findit-brand" href="/" aria-label="Lost&found home"
@@ -748,6 +940,7 @@
       </p>
     </div>
   </footer>
+  <!-- Optional modal used for report shortcuts and quick-entry actions -->
   @if (reportOpen()) {
   <div class="modal-backdrop" role="presentation" (click)="closeReport()">
     <section
