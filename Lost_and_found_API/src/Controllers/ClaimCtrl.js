@@ -1,6 +1,7 @@
 import { Router } from "express";
 import pool from "../db.js";
 import { authenticate } from "../middleware/auth.js";
+import supabase from "../utils/supabase.js";
 
 export async function post_claim(req,res) {
      try {
@@ -205,3 +206,100 @@ export async function update_claim_status(req,res) {
   }
     
 }
+export async function uploadEvidence(req, res) {
+    try {
+        const { claimId } = req.params;
+        const { evidence_type, description } = req.body;
+
+        // Make sure a file was uploaded
+        if (!req.file) {
+            return res.status(400).json({
+                message: "Evidence file is required"
+            });
+        }
+
+        // Make sure evidence type was provided
+        if (!evidence_type) {
+            return res.status(400).json({
+                message: "Evidence type is required"
+            });
+        }
+
+        // Check that the claim exists
+        const claimResult = await pool.query(
+            `SELECT id, claimant_id
+             FROM claims
+             WHERE id = $1`,
+            [claimId]
+        );
+
+        if (claimResult.rows.length === 0) {
+            return res.status(404).json({
+                message: "Claim not found"
+            });
+        }
+
+        const claim = claimResult.rows[0];
+
+        // Only the claimant can upload their evidence
+        if (req.user.id !== claim.claimant_id) {
+            return res.status(403).json({
+                message: "Only the claimant can upload evidence"
+            });
+        }
+
+        // Create a unique file path
+        const filePath = `claim-${claimId}/${Date.now()}-${req.file.originalname}`;
+
+        // Upload the file to Supabase Storage
+        const { error: uploadError } = await supabase.storage
+            .from("claim-evidence")
+            .upload(filePath, req.file.buffer, {
+                contentType: req.file.mimetype,
+                upsert: false
+            });
+
+        if (uploadError) {
+            console.error("Supabase upload error:", uploadError);
+
+            return res.status(500).json({
+                message: "Failed to upload evidence"
+            });
+        }
+
+        // Save the file path in PostgreSQL
+        const evidenceResult = await pool.query(
+            `INSERT INTO claim_evidence
+            (claim_id, evidence_type, file_url, description, uploaded_by)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING *`,
+            [
+                claimId,
+                evidence_type,
+                filePath,
+                description || null,
+                req.user.id
+            ]
+        );
+
+        // Change claim status to pending review
+        await pool.query(
+            `UPDATE claims
+             SET status = 'pending_review'
+             WHERE id = $1`,
+            [claimId]
+        );
+
+        return res.status(201).json({
+            message: "Evidence uploaded successfully",
+            evidence: evidenceResult.rows[0]
+        });
+
+    } catch (error) {
+        console.error("Evidence upload error:", error);
+
+        return res.status(500).json({
+            message: "Server error"
+        });
+    }
+};
