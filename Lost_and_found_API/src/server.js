@@ -3,6 +3,7 @@ import "dotenv/config";
 import pool from "./db.js";
 import init_db from "./database/init_db.js"
 import { generalLimiter } from "./middleware/rateLimiter.js";
+import supabase from "../src/utils/supabase.js";
 import cors from "cors";
 
 
