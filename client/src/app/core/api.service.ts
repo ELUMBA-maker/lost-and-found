@@ -2,6 +2,7 @@ import { Injectable, inject } from "@angular/core";
 import { HttpClient, HttpHeaders, HttpParams } from "@angular/common/http";
 import { Observable } from "rxjs";
 
+// Shared model for community reports and item listings.
 export interface ApiItem {
   id: number;
   user_id: number;
@@ -15,8 +16,10 @@ export interface ApiItem {
   created_at?: string;
 }
 
+// Claim workflow states: pending review, approved by admin, or rejected.
 export interface ApiClaim {
   id: number;
+  created_at?: string;
   item_id: number;
   claimant_id: number;
   message: string;
@@ -30,6 +33,24 @@ export interface ApiClaim {
   claimant_name?: string;
   claimant_email?: string;
   claimant_phone?: string;
+  evidence_name?: string;
+  evidence_data?: string;
+  verification_status?: "pending" | "verified" | "rejected";
+  payment_status?: "not_requested" | "requested" | "paid";
+  payment_amount?: number;
+  payment_instructions?: string;
+  verified_at?: string;
+  paid_at?: string;
+}
+
+export interface ApiMessage {
+  id: number;
+  claim_id: number;
+  sender_id: number;
+  sender_name: string;
+  sender_role: string;
+  message: string;
+  created_at: string;
 }
 
 export interface CreateItemRequest {
@@ -69,11 +90,13 @@ export interface RegisterRequest {
   phone: string;
 }
 
+// Central HTTP contract used by the Angular client for items, auth, claims, admin review, and chat.
 @Injectable({ providedIn: "root" })
 export class ApiService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = "/api";
 
+  // Public item listings and filtered discovery endpoints.
   getItems(
     filters: { search?: string; status?: string } = {},
   ): Observable<ItemsResponse> {
@@ -88,6 +111,7 @@ export class ApiService {
     return this.http.get<ItemsResponse>(`${this.apiUrl}/items/my`, { headers });
   }
 
+  // Creates a new lost/found report tied to the signed-in user.
   createItem(
     item: CreateItemRequest,
     accessToken: string,
@@ -98,19 +122,27 @@ export class ApiService {
     });
   }
 
+  // Submission of a claim with optional evidence and identity proof.
   createClaim(
     itemId: number,
     message: string,
     accessToken: string,
+    evidence?: { data: string; name: string },
   ): Observable<{ claim: ApiClaim }> {
     const headers = new HttpHeaders({ Authorization: `Bearer ${accessToken}` });
     return this.http.post<{ claim: ApiClaim }>(
       `${this.apiUrl}/claims`,
-      { item_id: itemId, message },
+      {
+        item_id: itemId,
+        message,
+        evidence_data: evidence?.data,
+        evidence_name: evidence?.name,
+      },
       { headers },
     );
   }
 
+  // Claim history endpoints for the claimant and the reporter of the found item.
   getMyClaims(
     accessToken: string,
   ): Observable<{ count: number; claims: ApiClaim[] }> {
@@ -145,6 +177,93 @@ export class ApiService {
     );
   }
 
+  getAdminClaims(accessToken: string): Observable<{ claims: ApiClaim[] }> {
+    const headers = new HttpHeaders({ Authorization: `Bearer ${accessToken}` });
+    return this.http.get<{ claims: ApiClaim[] }>(
+      `${this.apiUrl}/admin/claims`,
+      { headers },
+    );
+  }
+
+  getClaimEvidence(
+    claimId: number,
+    accessToken: string,
+  ): Observable<{ evidence_data: string; evidence_name: string }> {
+    const headers = new HttpHeaders({ Authorization: `Bearer ${accessToken}` });
+    return this.http.get<{ evidence_data: string; evidence_name: string }>(
+      `${this.apiUrl}/admin/claims/${claimId}/evidence`,
+      { headers },
+    );
+  }
+
+  reviewAdminClaim(
+    claimId: number,
+    status: "approved" | "rejected",
+    accessToken: string,
+  ): Observable<{ claim: ApiClaim }> {
+    const headers = new HttpHeaders({ Authorization: `Bearer ${accessToken}` });
+    return this.http.patch<{ claim: ApiClaim }>(
+      `${this.apiUrl}/admin/claims/${claimId}`,
+      { status },
+      { headers },
+    );
+  }
+
+  requestClaimPayment(
+    claimId: number,
+    amount: number,
+    instructions: string,
+    accessToken: string,
+  ): Observable<unknown> {
+    const headers = new HttpHeaders({ Authorization: `Bearer ${accessToken}` });
+    return this.http.patch(
+      `${this.apiUrl}/admin/claims/${claimId}/payment`,
+      { amount, instructions },
+      { headers },
+    );
+  }
+
+  confirmClaimPayment(
+    claimId: number,
+    accessToken: string,
+  ): Observable<unknown> {
+    const headers = new HttpHeaders({ Authorization: `Bearer ${accessToken}` });
+    return this.http.patch(
+      `${this.apiUrl}/admin/claims/${claimId}/payment-confirmation`,
+      {},
+      { headers },
+    );
+  }
+
+  getClaimMessages(
+    claimId: number,
+    accessToken: string,
+  ): Observable<{ messages: ApiMessage[] }> {
+    const headers = new HttpHeaders({ Authorization: `Bearer ${accessToken}` });
+    return this.http.get<{ messages: ApiMessage[] }>(
+      `${this.apiUrl}/claims/${claimId}/messages`,
+      { headers },
+    );
+  }
+
+  sendClaimMessage(
+    claimId: number,
+    message: string,
+    accessToken: string,
+  ): Observable<{ message: ApiMessage }> {
+    const headers = new HttpHeaders({ Authorization: `Bearer ${accessToken}` });
+    return this.http.post<{ message: ApiMessage }>(
+      `${this.apiUrl}/claims/${claimId}/messages`,
+      { message },
+      { headers },
+    );
+  }
+
+  getCurrentUser(accessToken: string): Observable<AuthUser> {
+    const headers = new HttpHeaders({ Authorization: `Bearer ${accessToken}` });
+    return this.http.get<AuthUser>(`${this.apiUrl}/users/me`, { headers });
+  }
+
   login(email: string, password: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login`, {
       email,
@@ -157,10 +276,5 @@ export class ApiService {
       `${this.apiUrl}/auth/register`,
       user,
     );
-  }
-
-  getCurrentUser(accessToken: string): Observable<AuthUser> {
-    const headers = new HttpHeaders({ Authorization: `Bearer ${accessToken}` });
-    return this.http.get<AuthUser>(`${this.apiUrl}/users/me`, { headers });
   }
 }

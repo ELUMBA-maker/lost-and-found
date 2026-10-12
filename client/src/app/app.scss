@@ -312,11 +312,6 @@ h2 {
   justify-content: center;
   position: relative;
 }
-.item-visual > span:first-child {
-  font-size: 4.5rem;
-  filter: grayscale(0.15);
-  transform: rotate(-8deg);
-}
 .coral {
   background: #f5b69c;
 }
@@ -1286,10 +1281,13 @@ h2 {
   border: 0;
   margin-top: 0.5rem;
 }
-.claim-dashboard { margin: 1.5rem auto 0; max-width: 1100px; }
-.claim-review-row { display: grid; gap: 0.75rem; grid-template-columns: minmax(0, 1fr) auto; }
-.claim-message { white-space: pre-line; overflow-wrap: anywhere; }
-.claim-decision-actions,.claim-contact-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; grid-column: 1 / -1; }
+.claim-dashboard { background: #fff; border: 1px solid #dce3df; border-radius: 8px; margin: 1.5rem auto 0; max-width: 1100px; padding: 1.25rem; }
+.claim-dashboard h2 { font-size: 1.3rem; margin: 0; }
+.claim-item-group h3 { font-size: 0.9rem; }
+.claim-review-row { border-top: 1px solid #e5ebe7; display: grid; gap: 0.75rem; grid-template-columns: minmax(0, 1fr) auto; padding: 0.85rem 0; }
+.claim-review-copy p { color: #66736c; font-size: 0.75rem; margin: 0.35rem 0 0; }
+.claim-message { overflow-wrap: anywhere; white-space: pre-line; }
+.claim-decision-actions, .claim-contact-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; grid-column: 1 / -1; }
 .profile-page {
   background: #f7f8f6;
   max-width: none;
@@ -1313,6 +1311,18 @@ h2 {
 .profile-banner h1 {
   font-size: 2.8rem;
   margin: 0 0 0.45rem;
+}
+.admin-pill {
+  background: #17211d;
+  border-radius: 999px;
+  color: #f5f4ef;
+  display: inline-flex;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.65rem;
+  padding: 0.4rem 0.7rem;
+  text-transform: uppercase;
 }
 .profile-banner p:last-child {
   color: #617069;
