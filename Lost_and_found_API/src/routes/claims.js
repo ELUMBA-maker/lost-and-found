@@ -99,8 +99,8 @@ router.get("/my", authenticate, async (req, res) => {
          i.description AS item_description,
          i.location AS item_location,
          u.name AS reporter_name,
-         CASE WHEN c.payment_status = 'paid' THEN u.email END AS reporter_email,
-         CASE WHEN c.payment_status = 'paid' THEN COALESCE(i.contact_phone, u.phone) END AS reporter_phone
+         CASE WHEN c.verification_status = 'verified' OR c.payment_status = 'paid' THEN u.email END AS reporter_email,
+         CASE WHEN c.verification_status = 'verified' OR c.payment_status = 'paid' THEN COALESCE(i.contact_phone, u.phone) END AS reporter_phone
        FROM claims c
        JOIN items i ON i.id = c.item_id
        JOIN users u ON u.id = i.user_id

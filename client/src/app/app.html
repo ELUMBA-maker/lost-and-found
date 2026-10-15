@@ -145,7 +145,7 @@
                 <strong>Date reported</strong><span>{{ item.date }}</span>
               </div>
             </div>
-            }@if (item.status === 'found' && item.ownerId !== authUser()?.id) {
+            }@if (item.status === 'found') {
             <button
               class="post-button claim-item-button"
               type="button"
@@ -266,7 +266,7 @@
                 <strong>Date reported</strong><span>{{ item.date }}</span>
               </div>
             </div>
-            }@if (item.status === 'found' && item.ownerId !== authUser()?.id) {
+            }@if (item.status === 'found') {
             <button
               class="post-button claim-item-button"
               type="button"
