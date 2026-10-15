@@ -95,8 +95,8 @@ router.get("/my", authenticate, async (req, res) => {
          i.description AS item_description,
          i.location AS item_location,
          u.name AS reporter_name,
-         CASE WHEN c.payment_status = 'paid' THEN u.email END AS reporter_email,
-         CASE WHEN c.payment_status = 'paid' THEN COALESCE(i.contact_phone, u.phone) END AS reporter_phone
+         CASE WHEN c.verification_status = 'verified' OR c.payment_status = 'paid' THEN u.email END AS reporter_email,
+         CASE WHEN c.verification_status = 'verified' OR c.payment_status = 'paid' THEN COALESCE(i.contact_phone, u.phone) END AS reporter_phone
        FROM claims c
        JOIN items i ON i.id = c.item_id
        JOIN users u ON u.id = i.user_id
@@ -301,9 +301,4 @@ router.patch("/:id", authenticate, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-router.post("/", authenticate, post_claim);
-router.get("/my", authenticate, my_claims);
-router.get("/item/:itemId", authenticate, get_claim_on_item_by_id);
-router.patch("/:id", authenticate, update_claim_status);
-
 export default router;
