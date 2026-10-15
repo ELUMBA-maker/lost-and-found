@@ -10,11 +10,11 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-export const sendVerificationEmail = async (email, code) => {
+export const sendVerificationEmail = async (email, code,exp) => {
     await transporter.sendMail({
         from: process.env.EMAIL_FROM,
         to: email,
         subject: "Lost & Found Email Verification",
-        text: `Your verification code is ${code}. It expires in 10 minutes.`
+        text: `Your verification code is ${code}. It expires in ${exp} minutes.`
     });
 };
