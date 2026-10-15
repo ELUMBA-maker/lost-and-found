@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import pool from "../db.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/token.js";
-import { generateOTP } from "../utils/otp.js";
+import { generateOTP,getOTPExpiration } from "../utils/otp.js";
 import { sendVerificationEmail } from "../utils/email.js";
 
 export async function register(req, res) {
@@ -81,9 +81,7 @@ export async function register(req, res) {
 
     const verificationCode = generateOTP();
 
-    const verificationExpires =
-    new Date(Date.now() + 10 * 60 * 1000);
-
+    const verificationExpires =getOTPExpiration();
     await pool.query(
       `UPDATE users
       SET verification_code = $1,
@@ -92,7 +90,7 @@ export async function register(req, res) {
     [verificationCode, verificationExpires, user.id]
 );
 
-await sendVerificationEmail(user.email, verificationCode);
+await sendVerificationEmail(user.email, verificationCode, verificationExpires);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal Server error" });
