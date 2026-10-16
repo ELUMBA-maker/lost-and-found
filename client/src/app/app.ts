@@ -39,6 +39,7 @@ export class App {
   protected readonly menuOpen = signal(false);
   protected readonly authUser = signal<AuthUser | null>(null);
   protected readonly authMode = signal<"signin" | "signup">("signin");
+  protected readonly passwordVisible = signal(false);
   protected readonly loginError = signal("");
   protected readonly loginSubmitting = signal(false);
   protected readonly filters = [
@@ -349,7 +350,11 @@ export class App {
   }
   protected setAuthMode(mode: "signin" | "signup"): void {
     this.authMode.set(mode);
+    this.passwordVisible.set(false);
     this.loginError.set("");
+  }
+  protected togglePasswordVisibility(): void {
+    this.passwordVisible.update((visible) => !visible);
   }
   // Authentication and account lifecycle.
   protected login(event: SubmitEvent): void {

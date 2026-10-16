@@ -1486,6 +1486,37 @@ h2 {
   padding: 0.9rem;
   width: 100%;
 }
+.auth-password-field {
+  position: relative;
+}
+.auth-form .auth-password-field input {
+  padding-right: 3rem;
+}
+.password-visibility-toggle {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  color: #617069;
+  cursor: pointer;
+  display: flex;
+  height: 2.5rem;
+  justify-content: center;
+  padding: 0.45rem;
+  position: absolute;
+  right: 0.4rem;
+  top: calc(50% + 0.25rem);
+  transform: translateY(-50%);
+  width: 2.5rem;
+}
+.password-visibility-toggle:hover {
+  background: #edf3f0;
+  color: #17211d;
+}
+.password-visibility-toggle svg {
+  height: 1.2rem;
+  width: 1.2rem;
+}
 .auth-tabs {
   background: #edf3f0;
   border-radius: 8px;
