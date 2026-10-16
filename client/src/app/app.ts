@@ -142,7 +142,7 @@ export class App {
   private startDashboardPolling(): void {
     this.dashboardPolling?.unsubscribe();
     if (!this.authUser()) return;
-    this.dashboardPolling = interval(5000)
+    this.dashboardPolling = interval(30000)
       .pipe(
         startWith(0),
         switchMap(() => {
@@ -706,7 +706,7 @@ export class App {
     this.chatError.set("");
     this.chatLoading.set(true);
     this.chatPolling?.unsubscribe();
-    this.chatPolling = interval(4000)
+    this.chatPolling = interval(10000)
       .pipe(
         startWith(0),
         switchMap(() => this.api.getClaimMessages(claim.id, accessToken)),
