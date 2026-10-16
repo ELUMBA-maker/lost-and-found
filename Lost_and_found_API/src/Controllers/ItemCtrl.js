@@ -3,6 +3,7 @@ import pool from "../db.js";
 import { authenticate } from "../middleware/auth.js";
 
 const router = Router();
+const allowedStatuses = ["lost", "found", "claimed", "returned"];
 
 export async function post_item(req,res) {
     try {
