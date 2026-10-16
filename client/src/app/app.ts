@@ -381,9 +381,23 @@ export class App {
         },
         error: (error) => {
           this.loginSubmitting.set(false);
+          const apiMessage =
+            typeof error.error?.message === "string"
+              ? error.error.message
+              : "";
           this.loginError.set(
-            error.error?.message ||
-              "Sign in failed. Check your email and password.",
+            apiMessage ||
+              (error.status === 0
+                ? "Could not reach the server. Check your connection and try again."
+                : error.status === 404
+                  ? "The sign-in service is unavailable. Please try again later."
+                  : error.status === 401
+                    ? "Email or password is incorrect."
+                    : error.status === 429
+                      ? "Too many sign-in attempts. Please wait a minute and try again."
+                      : error.status >= 500
+                        ? "Sign-in is temporarily unavailable. Please try again shortly."
+                        : "Could not sign in. Check your details and try again."),
           );
         },
       });
@@ -442,9 +456,13 @@ export class App {
             apiMessage ||
               (error.status === 0
                 ? "Could not reach the server. Check your connection and try again."
-                : error.status >= 500
-                  ? "Account creation is temporarily unavailable. Please try again shortly."
-                  : "Could not create your account. Check your details and try again."),
+              : error.status === 404
+                ? "The account service is unavailable. Please try again later."
+                : error.status === 429
+                  ? "Too many requests. Please wait a minute and try again."
+                  : error.status >= 500
+                    ? "Account creation is temporarily unavailable. Please try again shortly."
+                    : "Could not create your account. Check your details and try again."),
           );
         },
       });

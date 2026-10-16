@@ -12,6 +12,12 @@
   },
   "rewrites": [
     {
+      "source": "/api/(.*)",
+      "destination": {
+        "service": "lost_and_found_api"
+      }
+    },
+    {
       "source": "/(.*)",
       "destination": {
         "service": "client"
