@@ -92,6 +92,12 @@ export async function register(req, res) {
 
 await sendVerificationEmail(user.email, verificationCode, verificationExpires);
   } catch (error) {
+    if (error.code === "23505") {
+      return res.status(409).json({
+        message: "An account with this email already exists. Please sign in or use a different email address."
+      });
+    }
+
     console.error(error);
     res.status(500).json({ message: "Internal Server error" });
 

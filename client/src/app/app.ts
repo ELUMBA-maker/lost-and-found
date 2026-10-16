@@ -422,8 +422,24 @@ export class App {
         },
         error: (error) => {
           this.loginSubmitting.set(false);
+          if (error.status === 409) {
+            this.loginError.set(
+              "An account with this email already exists. Sign in or use a different email address.",
+            );
+            return;
+          }
+
+          const apiMessage =
+            typeof error.error?.message === "string"
+              ? error.error.message
+              : "";
           this.loginError.set(
-            error.error?.message || "Could not create your account.",
+            apiMessage ||
+              (error.status === 0
+                ? "Could not reach the server. Check your connection and try again."
+                : error.status >= 500
+                  ? "Account creation is temporarily unavailable. Please try again shortly."
+                  : "Could not create your account. Check your details and try again."),
           );
         },
       });
