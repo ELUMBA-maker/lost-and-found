@@ -1,7 +1,7 @@
 import { Router } from "express";
 import pool from "../db.js";
 import { authenticate } from "../middleware/auth.js";
-import supabase from "../utils/supabase.js";
+import { getSupabaseClient } from "../utils/supabase.js";
 
 export async function post_claim(req,res) {
      try {
@@ -252,7 +252,7 @@ export async function uploadEvidence(req, res) {
         const filePath = `claim-${claimId}/${Date.now()}-${req.file.originalname}`;
 
         // Upload the file to Supabase Storage
-        const { error: uploadError } = await supabase.storage
+        const { error: uploadError } = await getSupabaseClient().storage
             .from("claim-evidence")
             .upload(filePath, req.file.buffer, {
                 contentType: req.file.mimetype,

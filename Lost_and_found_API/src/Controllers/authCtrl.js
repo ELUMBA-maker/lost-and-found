@@ -74,14 +74,8 @@ export async function register(req, res) {
 
     const user = result.rows[0];
 
-    res.status(201).json({
-      message: "Registration successful",
-      user
-    });
-
     const verificationCode = generateOTP();
-
-    const verificationExpires =getOTPExpiration();
+    const verificationExpires = getOTPExpiration();
     await pool.query(
       `UPDATE users
       SET verification_code = $1,
@@ -90,7 +84,23 @@ export async function register(req, res) {
     [verificationCode, verificationExpires, user.id]
 );
 
-await sendVerificationEmail(user.email, verificationCode, verificationExpires);
+    try {
+      await sendVerificationEmail(
+        user.email,
+        verificationCode,
+        verificationExpires,
+      );
+    } catch (emailError) {
+      console.error(
+        "Account created, but verification email could not be sent:",
+        emailError,
+      );
+    }
+
+    return res.status(201).json({
+      message: "Registration successful",
+      user
+    });
   } catch (error) {
     if (error.code === "23505") {
       return res.status(409).json({

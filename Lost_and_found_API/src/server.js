@@ -3,7 +3,6 @@ import "dotenv/config";
 
 import pool, { validateDatabaseUrl } from "./db.js";
 import { generalLimiter } from "./middleware/rateLimiter.js";
-import supabase from "../src/utils/supabase.js";
 import cors from "cors";
 
 import authRoutes from "./routes/auth.js";
