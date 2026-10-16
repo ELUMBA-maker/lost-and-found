@@ -994,7 +994,7 @@
       </div>
       } }
     </section>
-    } @if (authUser()?.role === 'admin') {
+    } @if (isAdmin()) {
     <section class="claim-dashboard admin-claim-dashboard">
       <div class="card-heading"><h2>Administrator review</h2></div>
       @if (adminError()) {
@@ -1096,7 +1096,7 @@
       }
     </section>
     <!-- Conversation list for non-admin users after payment confirmation -->
-    } @if (authUser()?.role !== 'admin') {
+    } @if (!isAdmin()) {
     <section class="claim-dashboard conversations-dashboard">
       <div class="card-heading"><h2>Conversations</h2></div>
       <p class="conversation-intro">

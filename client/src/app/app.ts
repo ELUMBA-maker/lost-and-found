@@ -105,8 +105,11 @@ export class App {
       (item) => item.status === "found" || item.status === "claimed",
     ),
   );
+  private normalizeRole(role?: string): string {
+    return (role ?? "").trim().toLowerCase();
+  }
   protected readonly isAdmin = computed(
-    () => this.authUser()?.role === "admin",
+    () => this.normalizeRole(this.authUser()?.role) === "admin",
   );
   // Filtered list used by the browse and landing-page item cards.
   protected readonly filteredItems = computed(() => {
@@ -145,7 +148,7 @@ export class App {
     });
     this.loadMyItems(accessToken);
     this.loadMyClaims(accessToken);
-    if (this.authUser()?.role === "admin") this.loadAdminClaims(accessToken);
+    if (this.isAdmin()) this.loadAdminClaims(accessToken);
   }
 
   private refreshProfile(): void {
@@ -153,9 +156,13 @@ export class App {
     if (!accessToken) return;
     this.api.getCurrentUser(accessToken).subscribe({
       next: (user) => {
-        this.authUser.set(user);
-        localStorage.setItem("authUser", JSON.stringify(user));
-        if (user.role === "admin") {
+        const normalizedUser = {
+          ...user,
+          role: this.normalizeRole(user.role),
+        };
+        this.authUser.set(normalizedUser);
+        localStorage.setItem("authUser", JSON.stringify(normalizedUser));
+        if (this.normalizeRole(user.role) === "admin") {
           this.adminError.set("");
           this.loadAdminClaims(accessToken);
         } else {
@@ -200,11 +207,19 @@ export class App {
     const accessToken = localStorage.getItem("accessToken");
     const storedUser = localStorage.getItem("authUser");
     if (accessToken && storedUser) {
-      this.authUser.set(JSON.parse(storedUser));
+      const parsedStoredUser = JSON.parse(storedUser);
+      this.authUser.set({
+        ...parsedStoredUser,
+        role: this.normalizeRole(parsedStoredUser?.role),
+      });
       this.api.getCurrentUser(accessToken).subscribe({
         next: (user) => {
-          this.authUser.set(user);
-          localStorage.setItem("authUser", JSON.stringify(user));
+          const normalizedUser = {
+            ...user,
+            role: this.normalizeRole(user.role),
+          };
+          this.authUser.set(normalizedUser);
+          localStorage.setItem("authUser", JSON.stringify(normalizedUser));
           this.refreshDashboardData();
           this.startDashboardPolling();
         },
@@ -400,10 +415,14 @@ export class App {
       )
       .subscribe({
         next: (response) => {
+          const normalizedUser = {
+            ...response.user,
+            role: this.normalizeRole(response.user.role),
+          };
           localStorage.setItem("accessToken", response.accessToken);
           localStorage.setItem("refreshToken", response.refreshToken);
-          localStorage.setItem("authUser", JSON.stringify(response.user));
-          this.authUser.set(response.user);
+          localStorage.setItem("authUser", JSON.stringify(normalizedUser));
+          this.authUser.set(normalizedUser);
           this.refreshDashboardData();
           this.startDashboardPolling();
           this.loginSubmitting.set(false);
@@ -451,10 +470,14 @@ export class App {
         next: () => {
           this.api.login(email, password).subscribe({
             next: (response) => {
+              const normalizedUser = {
+                ...response.user,
+                role: this.normalizeRole(response.user.role),
+              };
               localStorage.setItem("accessToken", response.accessToken);
               localStorage.setItem("refreshToken", response.refreshToken);
-              localStorage.setItem("authUser", JSON.stringify(response.user));
-              this.authUser.set(response.user);
+              localStorage.setItem("authUser", JSON.stringify(normalizedUser));
+              this.authUser.set(normalizedUser);
               this.refreshDashboardData();
               this.startDashboardPolling();
               this.loginSubmitting.set(false);
