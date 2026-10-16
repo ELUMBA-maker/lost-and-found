@@ -148,6 +148,26 @@ export class App {
     if (this.authUser()?.role === "admin") this.loadAdminClaims(accessToken);
   }
 
+  private refreshProfile(): void {
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) return;
+    this.api.getCurrentUser(accessToken).subscribe({
+      next: (user) => {
+        this.authUser.set(user);
+        localStorage.setItem("authUser", JSON.stringify(user));
+        if (user.role === "admin") {
+          this.adminError.set("");
+          this.loadAdminClaims(accessToken);
+        } else {
+          this.adminClaims.set([]);
+        }
+      },
+      error: (error) => {
+        console.error("Could not refresh the current user profile:", error);
+      },
+    });
+  }
+
   private startDashboardPolling(): void {
     this.dashboardPolling?.unsubscribe();
     if (!this.authUser()) return;
@@ -353,6 +373,7 @@ export class App {
     if (page === "report" && !this.requireAuth()) return;
     this.activePage.set(page);
     this.menuOpen.set(false);
+    if (page === "profile" && this.authUser()) this.refreshProfile();
   }
   protected toggleMenu(): void {
     this.menuOpen.update((isOpen) => !isOpen);

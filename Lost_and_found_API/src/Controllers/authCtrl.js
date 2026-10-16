@@ -132,7 +132,9 @@ export async function login(req, res) {
     }
 
     const result = await pool.query(
-      "SELECT * FROM users WHERE email = $1",
+      `SELECT id, name, email, phone, password_hash, LOWER(BTRIM(role)) AS role
+       FROM users
+       WHERE email = $1`,
       [email.trim().toLowerCase()]
     );
 
