@@ -106,7 +106,7 @@
         >}
       </div>
       <div class="item-grid">
-        @for (item of filteredItems(); track item.name) {
+        @for (item of filteredItems(); track item.id) {
         <article class="item-card">
           <div
             class="item-visual"
@@ -153,6 +153,103 @@
             >
               This is mine <span aria-hidden="true">→</span>
             </button>
+            }
+            @if (item.ownerId === authUser()?.id) {
+            <div class="item-owner-actions">
+              <button
+                class="item-owner-button"
+                type="button"
+                [disabled]="itemActionBusyId() === item.id"
+                (click)="editItem(item.id)"
+              >
+                Edit report
+              </button>
+              <button
+                class="item-owner-button item-delete-button"
+                type="button"
+                [disabled]="itemActionBusyId() === item.id"
+                (click)="deleteItem(item.id)"
+              >
+                {{ itemActionBusyId() === item.id ? 'Deleting...' : 'Delete' }}
+              </button>
+            </div>
+            }
+            @if (editingItemId() === item.id) {
+            <form
+              class="item-edit-form"
+              (submit)="saveItemEdit($event, item.id)"
+            >
+              <label
+                >Title<input
+                  required
+                  name="title"
+                  type="text"
+                  [value]="item.name"
+              /></label>
+              <label
+                >Description<textarea
+                  required
+                  name="description"
+                  rows="3"
+                  [value]="item.description"
+                ></textarea>
+              </label>
+              <label
+                >Location<input
+                  required
+                  name="location"
+                  type="text"
+                  [value]="item.location"
+              /></label>
+              <label
+                >Category<input
+                  required
+                  name="category"
+                  type="text"
+                  [value]="item.itemCategory"
+              /></label>
+              <label
+                >Date<input
+                  required
+                  name="item_date"
+                  type="date"
+                  [value]="item.itemDate"
+              /></label>
+              <label
+                >Status<select required name="status" [value]="item.status">
+                  <option value="lost">Lost</option>
+                  <option value="found">Found</option>
+                  <option value="claimed">Claimed</option>
+                  <option value="returned">Returned</option>
+                </select></label
+              >
+              @if (itemActionError()?.itemId === item.id) {
+              <p class="form-error" role="alert">
+                {{ itemActionError()?.message }}
+              </p>
+              }
+              <div class="item-edit-actions">
+                <button
+                  class="item-owner-button"
+                  type="button"
+                  [disabled]="itemActionBusyId() === item.id"
+                  (click)="cancelItemEdit()"
+                >
+                  Cancel
+                </button>
+                <button
+                  class="item-owner-button item-save-button"
+                  type="submit"
+                  [disabled]="itemActionBusyId() === item.id"
+                >
+                  {{ itemActionBusyId() === item.id ? 'Saving...' : 'Save changes' }}
+                </button>
+              </div>
+            </form>
+            } @else if (itemActionError()?.itemId === item.id) {
+            <p class="form-error item-action-error" role="alert">
+              {{ itemActionError()?.message }}
+            </p>
             }
           </div>
         </article>
@@ -227,7 +324,7 @@
         >}
       </div>
       <div class="item-grid">
-        @for (item of filteredItems(); track item.name) {
+        @for (item of filteredItems(); track item.id) {
         <article class="item-card">
           <div
             class="item-visual"
@@ -274,6 +371,103 @@
             >
               This is mine <span aria-hidden="true">→</span>
             </button>
+            }
+            @if (item.ownerId === authUser()?.id) {
+            <div class="item-owner-actions">
+              <button
+                class="item-owner-button"
+                type="button"
+                [disabled]="itemActionBusyId() === item.id"
+                (click)="editItem(item.id)"
+              >
+                Edit report
+              </button>
+              <button
+                class="item-owner-button item-delete-button"
+                type="button"
+                [disabled]="itemActionBusyId() === item.id"
+                (click)="deleteItem(item.id)"
+              >
+                {{ itemActionBusyId() === item.id ? 'Deleting...' : 'Delete' }}
+              </button>
+            </div>
+            }
+            @if (editingItemId() === item.id) {
+            <form
+              class="item-edit-form"
+              (submit)="saveItemEdit($event, item.id)"
+            >
+              <label
+                >Title<input
+                  required
+                  name="title"
+                  type="text"
+                  [value]="item.name"
+              /></label>
+              <label
+                >Description<textarea
+                  required
+                  name="description"
+                  rows="3"
+                  [value]="item.description"
+                ></textarea>
+              </label>
+              <label
+                >Location<input
+                  required
+                  name="location"
+                  type="text"
+                  [value]="item.location"
+              /></label>
+              <label
+                >Category<input
+                  required
+                  name="category"
+                  type="text"
+                  [value]="item.itemCategory"
+              /></label>
+              <label
+                >Date<input
+                  required
+                  name="item_date"
+                  type="date"
+                  [value]="item.itemDate"
+              /></label>
+              <label
+                >Status<select required name="status" [value]="item.status">
+                  <option value="lost">Lost</option>
+                  <option value="found">Found</option>
+                  <option value="claimed">Claimed</option>
+                  <option value="returned">Returned</option>
+                </select></label
+              >
+              @if (itemActionError()?.itemId === item.id) {
+              <p class="form-error" role="alert">
+                {{ itemActionError()?.message }}
+              </p>
+              }
+              <div class="item-edit-actions">
+                <button
+                  class="item-owner-button"
+                  type="button"
+                  [disabled]="itemActionBusyId() === item.id"
+                  (click)="cancelItemEdit()"
+                >
+                  Cancel
+                </button>
+                <button
+                  class="item-owner-button item-save-button"
+                  type="submit"
+                  [disabled]="itemActionBusyId() === item.id"
+                >
+                  {{ itemActionBusyId() === item.id ? 'Saving...' : 'Save changes' }}
+                </button>
+              </div>
+            </form>
+            } @else if (itemActionError()?.itemId === item.id) {
+            <p class="form-error item-action-error" role="alert">
+              {{ itemActionError()?.message }}
+            </p>
             }
           </div>
         </article>

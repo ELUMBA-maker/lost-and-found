@@ -64,6 +64,11 @@ export interface CreateItemRequest {
   contact_phone?: string;
 }
 
+export type UpdateItemRequest = Pick<
+  ApiItem,
+  "title" | "description" | "category" | "location" | "item_date" | "status"
+>;
+
 export interface AuthUser {
   id: number;
   name: string;
@@ -120,6 +125,34 @@ export class ApiService {
     return this.http.post<{ item: ApiItem }>(`${this.apiUrl}/items`, item, {
       headers,
     });
+  }
+
+  updateItem(
+    itemId: number,
+    item: UpdateItemRequest,
+    accessToken: string,
+  ): Observable<{ item: ApiItem }> {
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${accessToken}`,
+    });
+    return this.http.put<{ item: ApiItem }>(
+      `${this.apiUrl}/items/${itemId}`,
+      item,
+      { headers },
+    );
+  }
+
+  deleteItem(
+    itemId: number,
+    accessToken: string,
+  ): Observable<{ message: string }> {
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${accessToken}`,
+    });
+    return this.http.delete<{ message: string }>(
+      `${this.apiUrl}/items/${itemId}`,
+      { headers },
+    );
   }
 
   // Submission of a claim with optional evidence and identity proof.

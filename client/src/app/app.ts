@@ -8,6 +8,7 @@ import {
   ApiMessage,
   ApiService,
   AuthUser,
+  UpdateItemRequest,
 } from "./core/api.service";
 import { AuthSessionService } from "./core/auth-session.service";
 
@@ -35,6 +36,12 @@ export class App {
   protected readonly selectedImage = signal("");
   protected readonly imageProcessing = signal(false);
   protected readonly selectedItemId = signal<number | null>(null);
+  protected readonly editingItemId = signal<number | null>(null);
+  protected readonly itemActionBusyId = signal<number | null>(null);
+  protected readonly itemActionError = signal<{
+    itemId: number;
+    message: string;
+  } | null>(null);
   protected readonly claimItemId = signal<number | null>(null);
   protected readonly menuOpen = signal(false);
   protected readonly authUser = signal<AuthUser | null>(null);
@@ -113,6 +120,8 @@ export class App {
       date: item.created_at
         ? new Date(item.created_at).toLocaleDateString()
         : item.item_date,
+      itemDate: item.item_date,
+      itemCategory: item.category,
       description: item.description,
       location: item.location,
       name: item.title,
@@ -483,6 +492,109 @@ export class App {
     this.activePage.set("profile");
     this.menuOpen.set(false);
     return false;
+  }
+  protected editItem(itemId: number): void {
+    this.editingItemId.set(itemId);
+    this.itemActionError.set(null);
+    this.selectedItemId.set(itemId);
+  }
+  protected cancelItemEdit(): void {
+    this.editingItemId.set(null);
+    this.itemActionError.set(null);
+  }
+  protected saveItemEdit(event: SubmitEvent, itemId: number): void {
+    event.preventDefault();
+    const accessToken = localStorage.getItem("accessToken");
+    const currentItem = this.apiItems().find((item) => item.id === itemId);
+    if (!accessToken || !currentItem) {
+      this.itemActionError.set({
+        itemId,
+        message: "Could not find this report. Refresh the page and try again.",
+      });
+      return;
+    }
+
+    const values = new FormData(event.currentTarget as HTMLFormElement);
+    const status = String(values.get("status") || "");
+    if (!this.isItemStatus(status)) {
+      this.itemActionError.set({
+        itemId,
+        message: "Choose a valid report status.",
+      });
+      return;
+    }
+
+    const updatedItem: UpdateItemRequest = {
+      title: String(values.get("title") || "").trim(),
+      description: String(values.get("description") || "").trim(),
+      category: String(values.get("category") || "").trim(),
+      location: String(values.get("location") || "").trim(),
+      item_date: String(values.get("item_date") || ""),
+      status,
+    };
+
+    this.itemActionBusyId.set(itemId);
+    this.itemActionError.set(null);
+    this.api.updateItem(itemId, updatedItem, accessToken).subscribe({
+      next: ({ item }) => {
+        this.apiItems.update((items) =>
+          items.map((existing) => (existing.id === itemId ? item : existing)),
+        );
+        this.myItems.update((items) =>
+          items.map((existing) => (existing.id === itemId ? item : existing)),
+        );
+        this.itemActionBusyId.set(null);
+        this.editingItemId.set(null);
+      },
+      error: (error) => {
+        this.itemActionBusyId.set(null);
+        this.itemActionError.set({
+          itemId,
+          message:
+            error.error?.message ||
+            "Could not update this report. Please try again.",
+        });
+      },
+    });
+  }
+  protected deleteItem(itemId: number): void {
+    if (!window.confirm("Delete this report? This cannot be undone.")) return;
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+      this.itemActionError.set({
+        itemId,
+        message: "Please sign in again to delete this report.",
+      });
+      return;
+    }
+
+    this.itemActionBusyId.set(itemId);
+    this.itemActionError.set(null);
+    this.api.deleteItem(itemId, accessToken).subscribe({
+      next: () => {
+        this.apiItems.update((items) =>
+          items.filter((item) => item.id !== itemId),
+        );
+        this.myItems.update((items) =>
+          items.filter((item) => item.id !== itemId),
+        );
+        this.itemActionBusyId.set(null);
+        this.editingItemId.set(null);
+        if (this.selectedItemId() === itemId) this.selectedItemId.set(null);
+      },
+      error: (error) => {
+        this.itemActionBusyId.set(null);
+        this.itemActionError.set({
+          itemId,
+          message:
+            error.error?.message ||
+            "Could not delete this report. Please try again.",
+        });
+      },
+    });
+  }
+  private isItemStatus(value: string): value is ApiItem["status"] {
+    return ["lost", "found", "claimed", "returned"].includes(value);
   }
   // Publishes a new lost or found item to the community board.
   protected submitReport(event: SubmitEvent): void {
