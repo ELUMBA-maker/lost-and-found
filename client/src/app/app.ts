@@ -445,7 +445,7 @@ export class App {
                     : error.status === 429
                       ? "Too many sign-in attempts. Please wait a minute and try again."
                       : error.status >= 500
-                        ? "Sign-in is temporarily unavailable. Please try again shortly."
+                        ? "The sign-in backend is unavailable. Check the deployed API environment variables and try again."
                         : "Could not sign in. Check your details and try again."),
           );
         },
@@ -801,56 +801,6 @@ export class App {
         this.adminError.set(
           error.error?.message || "Proof could not be opened.",
         ),
-    });
-  }
-  protected requestPayment(event: SubmitEvent, claimId: number): void {
-    event.preventDefault();
-    const form = event.currentTarget as HTMLFormElement;
-    const values = new FormData(form);
-    const accessToken = localStorage.getItem("accessToken");
-    if (!accessToken) return;
-    this.adminBusyId.set(claimId);
-    this.api
-      .requestClaimPayment(
-        claimId,
-        Number(values.get("amount")),
-        String(values.get("instructions") || ""),
-        accessToken,
-      )
-      .subscribe({
-        next: () => {
-          this.adminBusyId.set(null);
-          form.reset();
-          this.loadAdminClaims(accessToken);
-          this.loadMyClaims(accessToken);
-        },
-        error: (error) => {
-          this.adminBusyId.set(null);
-          this.adminError.set(
-            error.error?.message || "Payment request could not be sent.",
-          );
-        },
-      });
-  }
-  protected confirmPayment(claimId: number): void {
-    const accessToken = localStorage.getItem("accessToken");
-    if (!accessToken) return;
-    this.adminBusyId.set(claimId);
-    this.api.confirmClaimPayment(claimId, accessToken).subscribe({
-      next: () => {
-        this.adminBusyId.set(null);
-        this.loadAdminClaims(accessToken);
-        this.loadMyClaims(accessToken);
-        this.loadMyItems(accessToken);
-        const claim = this.adminClaims().find((item) => item.id === claimId);
-        if (claim) this.loadItemClaims(claim.item_id, accessToken);
-      },
-      error: (error) => {
-        this.adminBusyId.set(null);
-        this.adminError.set(
-          error.error?.message || "Payment confirmation could not be saved.",
-        );
-      },
     });
   }
   // Conversation panel used only by the claimant and finder after the payment is confirmed.

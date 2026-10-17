@@ -242,32 +242,6 @@ export class ApiService {
     );
   }
 
-  requestClaimPayment(
-    claimId: number,
-    amount: number,
-    instructions: string,
-    accessToken: string,
-  ): Observable<unknown> {
-    const headers = new HttpHeaders({ Authorization: `Bearer ${accessToken}` });
-    return this.http.patch(
-      `${this.apiUrl}/admin/claims/${claimId}/payment`,
-      { amount, instructions },
-      { headers },
-    );
-  }
-
-  confirmClaimPayment(
-    claimId: number,
-    accessToken: string,
-  ): Observable<unknown> {
-    const headers = new HttpHeaders({ Authorization: `Bearer ${accessToken}` });
-    return this.http.patch(
-      `${this.apiUrl}/admin/claims/${claimId}/payment-confirmation`,
-      {},
-      { headers },
-    );
-  }
-
   getClaimMessages(
     claimId: number,
     accessToken: string,

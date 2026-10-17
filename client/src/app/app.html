@@ -1023,7 +1023,7 @@
         <span
           class="activity-status"
           [class.open-status]="claim.verification_status !== 'verified'"
-          >{{ claim.verification_status }} · {{ claim.payment_status }}</span
+          >{{ claim.status }}</span
         >
         <div class="claim-decision-actions">
           <button
@@ -1032,7 +1032,7 @@
             [disabled]="adminBusyId() === claim.id || claim.verification_status !== 'pending'"
             (click)="reviewAdminClaim(claim, 'approved')"
           >
-            Verify
+            Approve
           </button>
           <button
             class="link-button"
@@ -1040,56 +1040,9 @@
             [disabled]="adminBusyId() === claim.id || claim.verification_status !== 'pending'"
             (click)="reviewAdminClaim(claim, 'rejected')"
           >
-            Reject
+            Decline
           </button>
         </div>
-        @if (claim.verification_status === 'verified' && claim.payment_status
-        === 'not_requested') {
-        <form
-          class="payment-request-form"
-          (submit)="requestPayment($event, claim.id)"
-        >
-          <label
-            >Finder reward paid by claimant (XAF)<input
-              name="amount"
-              type="number"
-              min="1000"
-              max="50000"
-              step="1"
-              required
-          /></label>
-          <label
-            >Payment instructions<input
-              name="instructions"
-              type="text"
-              maxlength="1000"
-              required
-              placeholder="How to complete payment"
-          /></label>
-          <button
-            class="post-button"
-            type="submit"
-            [disabled]="adminBusyId() === claim.id"
-          >
-            Request payment
-          </button>
-        </form>
-        } @else if (claim.payment_status === 'requested') {
-        <div class="payment-request-detail">
-          <p>
-            Finder reward: {{ claim.payment_amount }} XAF · {{
-            claim.payment_instructions }}
-          </p>
-          <button
-            class="post-button"
-            type="button"
-            [disabled]="adminBusyId() === claim.id"
-            (click)="confirmPayment(claim.id)"
-          >
-            Confirm received
-          </button>
-        </div>
-        }
       </article>
       } @empty {
       <p class="claim-empty">No claims to review.</p>

@@ -73,8 +73,20 @@ app.use((error, req, res, next) => {
   });
 });
 
+function validateRequiredEnvironment() {
+  const required = ["DATABASE_URL", "JWT_ACCESS_SECRET", "JWT_REFRESH_SECRET"];
+  const missing = required.filter((name) => !process.env[name]?.trim());
+
+  if (missing.length > 0) {
+    throw new Error(
+      `Missing required environment variables: ${missing.join(", ")}. Configure them before starting the API.`,
+    );
+  }
+}
+
 async function startServer() {
   try {
+    validateRequiredEnvironment();
     validateDatabaseUrl();
     await pool.query("SELECT 1");
     console.log("Supabase database accessible");
@@ -84,7 +96,7 @@ async function startServer() {
       console.log(`Server running on http://localhost:${PORT}`);
     });
   } catch (error) {
-    console.error("Could not connect to Supabase PostgreSQL:", error.message);
+    console.error("Could not start API:", error.message);
     process.exit(1);
   }
 }
